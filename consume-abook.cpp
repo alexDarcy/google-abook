@@ -16,12 +16,13 @@ namespace client
       using qi::double_;
       using qi::phrase_parse;
       using ascii::space;
+      using ascii::char_;
 
       bool r = phrase_parse(
           first,                          
           last,                           
-          double_ % ',',   
-          space, v
+          + (char_ - "=") >> "=" >> +(char_),   
+          space
           );
       if (first != last) // fail if we did not get a full match
         return false;
@@ -31,7 +32,7 @@ namespace client
 
 int main() {
   std::string str;
-  std::ifstream file("test.dat1");
+  std::ifstream file("test.dat");
 
   if (file.is_open()){
     while (getline(file, str)){
