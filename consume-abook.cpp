@@ -1,5 +1,6 @@
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
 //#include <boost/lambda/lambda.hpp>
 //#include <boost/bind.hpp>
 
@@ -11,41 +12,41 @@ namespace client
   namespace qi = boost::spirit::qi;
   namespace ascii = boost::spirit::ascii;
   template <typename Iterator>
-    bool parse_numbers(Iterator first, Iterator last, std::vector<double>& v)
+    struct entry_parser : qi::grammar<Iterator>
+  {
+    entry_parser() : entry_parser::base_type(start)
     {
-      using qi::double_;
-      using qi::phrase_parse;
-      using ascii::space;
+      using qi::eps;
+      using qi::lit;
+      using qi::_val;
+      using qi::_1;
       using ascii::char_;
 
-      bool r = phrase_parse(
-          first,                          
-          last,                           
-          + (char_ - "=") >> "=" >> +(char_),   
-          space
-          );
-      if (first != last) // fail if we did not get a full match
-        return false;
-      return r;
+      start = + (char_ - "=") >> "=" >> +(char_);
     }
+
+    qi::rule<Iterator> start;
+  };
+
 }
 
 int main() {
+  typedef std::string::const_iterator iterator_type;
+  typedef client::entry_parser<iterator_type> entry_parser;
+  entry_parser g; // Our grammar
   std::string str;
+  unsigned result;
   std::ifstream file("test.dat");
 
   if (file.is_open()){
     while (getline(file, str)){
       std::cout << "Reading " << str << "...";
-      std::vector<double> results;
-      if (client::parse_numbers(str.begin(), str.end(), results)){
+      std::string::const_iterator iter = str.begin();
+      std::string::const_iterator end = str.end();
+
+      bool r = parse(iter, end, g, result);
+      if (r && iter == end) 
         std::cout << "ok" <<  std::endl;
-        for (int i = 0; i < results.size(); ++i) 
-          std::cout << results[i] << " "; 
-        std::cout << std::endl;
-
-      }
-
       else
         std::cout << "failed" << std::endl;
       }
