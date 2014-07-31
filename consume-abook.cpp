@@ -19,6 +19,7 @@ namespace entity
   {
     std::string name;
     std::string email;
+    std::string nick;
   };
   typedef std::vector<person> list_person;
   //typedef std::vector<std::string> list_person;
@@ -28,6 +29,7 @@ BOOST_FUSION_ADAPT_STRUCT(
     entity::person,
     (std::string, name)
     (std::string, email)
+    (std::string, nick)
 )
 
 namespace entity
@@ -53,8 +55,10 @@ namespace entity
 
       pair = 
         "name=" >> value [at_c<0>(_val) = _1] >> eol 
-        >> "email=" >> value_last [at_c<1>(_val) = _1];
-      start = pair [push_back(_val, _1)];
+        >> "email=" >> value [at_c<1>(_val) = _1] >> eol
+        >> "nick=" >> value [at_c<2>(_val) = _1] >> eol;
+      start = 
+        *(pair [push_back(_val, _1)] >> *eol);
     }
 
     qi::rule<Iterator, std::string()> value;
