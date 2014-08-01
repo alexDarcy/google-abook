@@ -15,20 +15,22 @@
 /* Structure to store data */
 namespace entity 
 {
-  struct person
+  struct abook_entry
   {
     std::string name;
     std::string email;
+    std::string mobile;
     std::string nick;
   };
-  typedef std::vector<person> list_person;
-  //typedef std::vector<std::string> list_person;
+  typedef std::vector<abook_entry> abook;
+  //typedef std::vector<std::string> abook;
 }
 
 BOOST_FUSION_ADAPT_STRUCT(
-    entity::person,
+    entity::abook_entry,
     (std::string, name)
     (std::string, email)
+    (std::string, mobile)
     (std::string, nick)
 )
 
@@ -38,44 +40,55 @@ namespace entity
   namespace ascii = boost::spirit::ascii;
   namespace phoenix = boost::phoenix;
   template <typename Iterator>
-    //struct entry_parser : qi::grammar<Iterator, person()>
-    struct entry_parser : qi::grammar<Iterator, list_person()>
+    //struct abook_parser : qi::grammar<Iterator, person()>
+    struct abook_parser : qi::grammar<Iterator, abook()>
   {
-    entry_parser() : entry_parser::base_type(start)
+    abook_parser() : abook_parser::base_type(start)
     {
       using qi::_val;
       using qi::_1;
+      using qi::int_;
       using qi::eol;
       using ascii::char_;
       using phoenix::at_c;
       using phoenix::push_back;
 
-      value = +(char_ - eol) [_val += _1];
-      value_last = +(char_) [_val += _1];
+      value = +(char_ - eol) [_val += _1] >> eol;
 
-      pair = 
-        "name=" >> value [at_c<0>(_val) = _1] >> eol 
-        >> "email=" >> value [at_c<1>(_val) = _1] >> eol
-        >> "nick=" >> value [at_c<2>(_val) = _1] >> eol;
+      name %= "name=" >> value;
+      email %= "email=" >> value;
+      mobile %= "mobile=" >> value;
+      nick %= "nick=" >> value;
+
+      pair %= 
+        "[" >> int_ >> "]" >> eol
+        >> name 
+        >> *email
+        >> *mobile 
+        >> *nick; 
+
       start = 
         *(pair [push_back(_val, _1)] >> *eol);
     }
 
     qi::rule<Iterator, std::string()> value;
-    qi::rule<Iterator, std::string()> value_last;
-    qi::rule<Iterator, person()> pair;
-    qi::rule<Iterator, list_person()> start;
+    qi::rule<Iterator, std::string()> name;
+    qi::rule<Iterator, std::string()> email;
+    qi::rule<Iterator, std::string()> mobile;
+    qi::rule<Iterator, std::string()> nick;
+    qi::rule<Iterator, abook_entry()> pair;
+    qi::rule<Iterator, abook()> start;
   };
 
 }
 
 int main() {
   typedef std::string::const_iterator iterator_type;
-  typedef entity::entry_parser<iterator_type> entry_parser;
+  typedef entity::abook_parser<iterator_type> abook_parser;
 
-  entry_parser g; // Our grammar
+  abook_parser g; // Our grammar
   std::string str1, str2;
-  entity::list_person list; // Struct to save data
+  entity::abook list; // Struct to save data
   std::ifstream file("test.dat", std::ios_base::in);
 
   if (!file) {
@@ -99,9 +112,7 @@ int main() {
   if (r && iter == end) {
     std::cout << "ok" <<  std::endl;
     std::cout << "got: " ;
-    //for (std::vector<std::string>::iterator it = list.begin() ; it != list.end(); ++it)
-    //  std::cout << *it;
-    for (std::vector<entity::person>::iterator it = list.begin() ; it != list.end(); ++it)
+    for (std::vector<entity::abook_entry>::iterator it = list.begin() ; it != list.end(); ++it)
       std::cout << boost::fusion::as_vector(*it);
     std::cout << std::endl;
   }
