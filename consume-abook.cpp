@@ -13,7 +13,7 @@
 #include <fstream>
 
 /* Structure to store data */
-namespace entity 
+namespace abook 
 {
   struct abook_entry
   {
@@ -22,26 +22,31 @@ namespace entity
     std::string mobile;
     std::string nick;
   };
-  typedef std::vector<abook_entry> abook;
+  typedef std::vector<abook_entry> book;
   //typedef std::vector<std::string> abook;
+  //
+  //language review
+  //
 }
 
 BOOST_FUSION_ADAPT_STRUCT(
-    entity::abook_entry,
+    abook::abook_entry,
     (std::string, name)
     (std::string, email)
     (std::string, mobile)
     (std::string, nick)
 )
 
-namespace entity
+namespace abook
 {
   namespace qi = boost::spirit::qi;
   namespace ascii = boost::spirit::ascii;
   namespace phoenix = boost::phoenix;
+  namespace fphoenix = boost::phoenix;
+  
   template <typename Iterator>
     //struct abook_parser : qi::grammar<Iterator, person()>
-    struct abook_parser : qi::grammar<Iterator, abook()>
+    struct abook_parser : qi::grammar<Iterator, book()>
   {
     abook_parser() : abook_parser::base_type(start)
     {
@@ -77,18 +82,21 @@ namespace entity
     qi::rule<Iterator, std::string()> mobile;
     qi::rule<Iterator, std::string()> nick;
     qi::rule<Iterator, abook_entry()> pair;
-    qi::rule<Iterator, abook()> start;
+    qi::rule<Iterator, book()> start;
   };
 
 }
 
 int main() {
+  // To print the struct easily
+  using namespace boost::fusion;
+
   typedef std::string::const_iterator iterator_type;
-  typedef entity::abook_parser<iterator_type> abook_parser;
+  typedef abook::abook_parser<iterator_type> abook_parser;
 
   abook_parser g; // Our grammar
   std::string str1, str2;
-  entity::abook list; // Struct to save data
+  abook::book list; // Struct to save data
   std::ifstream file("test.dat", std::ios_base::in);
 
   if (!file) {
@@ -111,10 +119,8 @@ int main() {
   bool r = parse(iter, end, g, list);
   if (r && iter == end) {
     std::cout << "ok" <<  std::endl;
-    std::cout << "got: " ;
-    for (std::vector<entity::abook_entry>::iterator it = list.begin() ; it != list.end(); ++it)
-      std::cout << boost::fusion::as_vector(*it);
-    std::cout << std::endl;
+    for (std::vector<abook::abook_entry>::iterator it = list.begin() ; it != list.end(); ++it)
+      std::cout << (*it) << std::endl;
   }
   else
     std::cout << "failed" << std::endl;
