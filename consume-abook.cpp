@@ -23,10 +23,6 @@ namespace abook
     std::string nick;
   };
   typedef std::vector<abook_entry> book;
-  //typedef std::vector<std::string> abook;
-  //
-  //language review
-  //
 }
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -43,10 +39,25 @@ namespace abook
   namespace ascii = boost::spirit::ascii;
   namespace phoenix = boost::phoenix;
   namespace fphoenix = boost::phoenix;
-  
-  template <typename Iterator>
-    //struct abook_parser : qi::grammar<Iterator, person()>
-    struct abook_parser : qi::grammar<Iterator, book()>
+
+  // Skip comments and empty lines
+  template<typename Iterator>
+    struct comment_skipper : public qi::grammar<Iterator> {
+
+      qi::rule<Iterator> skip;
+
+      comment_skipper() : comment_skipper::base_type(skip)
+      {
+        using namespace qi;
+        skip = (lit("#") >> *(standard::char_ - eol) >> eol) 
+          | +(*(ascii::blank) >> eol);
+        //debug(skip);
+      }
+    };  
+
+  // Our grammar (using a custom skipper to skip comments and empty lines )
+  template <typename Iterator, typename skipper = comment_skipper<Iterator> >
+    struct abook_parser : qi::grammar<Iterator, book(), skipper>
   {
     abook_parser() : abook_parser::base_type(start)
     {
@@ -65,17 +76,20 @@ namespace abook
       mobile %= "mobile=" >> value;
       nick %= "nick=" >> value;
 
-      pair = 
+      entry = 
         "[" >> int_ >> "]" >> eol
         >> name [at_c<0>(_val) = _1]
         >> *email [at_c<1>(_val) = _1 ]
         >> *mobile [at_c<2>(_val) = _1 ]
-        >> *nick [at_c<3>(_val) = _1 ]
-        // Empty lines
-      >> +(*(ascii::blank) >> eol);
-      //debug(pair);
-      start = 
-        *(pair [push_back(_val, _1)] >> *eol);
+        >> *nick [at_c<3>(_val) = _1 ];
+      debug(entry);
+      
+      header = "[format]" >> eol
+        >> "program=" >> value
+        >> "version=" >> value;
+
+      start = *header 
+        >> *(entry [push_back(_val, _1)] >> *eol);
     }
 
     qi::rule<Iterator, std::string()> value;
@@ -83,23 +97,30 @@ namespace abook
     qi::rule<Iterator, std::string()> email;
     qi::rule<Iterator, std::string()> mobile;
     qi::rule<Iterator, std::string()> nick;
-    qi::rule<Iterator, abook_entry()> pair;
-    qi::rule<Iterator, book()> start;
+    qi::rule<Iterator, abook_entry()> entry;
+    qi::rule<Iterator, book(), skipper> start;
+    qi::rule<Iterator> header;
   };
 
 }
 
-int main() {
+int main(int argc, char *argv[]) {
   // To print the struct easily
   using namespace boost::fusion;
 
   typedef std::string::const_iterator iterator_type;
   typedef abook::abook_parser<iterator_type> abook_parser;
+  typedef abook::comment_skipper<iterator_type> comment_skipper;
 
   abook_parser g; // Our grammar
+  comment_skipper skip;
   std::string str1, str2;
   abook::book list; // Struct to save data
-  std::ifstream file("test.dat", std::ios_base::in);
+  if (argc != 2) {
+    std::cout << "Need a filename as argument" << std::endl;
+    return 1;
+  }
+  std::ifstream file(argv[1], std::ios_base::in);
 
   if (!file) {
     std::cout << "Failed to open file" << std::endl;
@@ -118,7 +139,8 @@ int main() {
   std::string::const_iterator iter = buffer.begin();
   std::string::const_iterator end = buffer.end();
 
-  bool r = parse(iter, end, g, list);
+  //bool r = parse(iter, end, g, list);
+  bool r = phrase_parse(iter, end, g, skip, list);
   if (r && iter == end) {
     std::cout << "ok" <<  std::endl;
     for (std::vector<abook::abook_entry>::iterator it = list.begin() ; it != list.end(); ++it)
