@@ -65,13 +65,15 @@ namespace abook
       mobile %= "mobile=" >> value;
       nick %= "nick=" >> value;
 
-      pair %= 
+      pair = 
         "[" >> int_ >> "]" >> eol
-        >> name 
-        >> *email
-        >> *mobile 
-        >> *nick; 
-
+        >> name [at_c<0>(_val) = _1]
+        >> *email [at_c<1>(_val) = _1 ]
+        >> *mobile [at_c<2>(_val) = _1 ]
+        >> *nick [at_c<3>(_val) = _1 ]
+        // Empty lines
+      >> +(*(ascii::blank) >> eol);
+      //debug(pair);
       start = 
         *(pair [push_back(_val, _1)] >> *eol);
     }
