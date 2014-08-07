@@ -8,9 +8,11 @@
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/fusion/include/io.hpp>
-
 #include <iostream>
 #include <fstream>
+
+/* Parse a file in abook format 
+ * standard_wide is used to manage accents. */
 
 /* Structure to store data */
 namespace abook 
@@ -31,12 +33,12 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, email)
     (std::string, mobile)
     (std::string, nick)
-)
+    )
 
-namespace abook
+  namespace abook
 {
   namespace qi = boost::spirit::qi;
-  namespace ascii = boost::spirit::ascii;
+  namespace standard_wide = boost::spirit::standard_wide;
   namespace phoenix = boost::phoenix;
   namespace fphoenix = boost::phoenix;
 
@@ -50,7 +52,7 @@ namespace abook
       {
         using namespace qi;
         skip = (lit("#") >> *(standard::char_ - eol) >> eol) 
-          | +(*(ascii::blank) >> eol);
+          | +(*(standard_wide::blank) >> eol);
         //debug(skip);
       }
     };  
@@ -65,7 +67,7 @@ namespace abook
       using qi::_1;
       using qi::int_;
       using qi::eol;
-      using ascii::char_;
+      using standard_wide::char_;
       using phoenix::at_c;
       using phoenix::push_back;
 
@@ -83,7 +85,7 @@ namespace abook
         >> *mobile [at_c<2>(_val) = _1 ]
         >> *nick [at_c<3>(_val) = _1 ];
       debug(entry);
-      
+
       header = "[format]" >> eol
         >> "program=" >> value
         >> "version=" >> value;
@@ -136,12 +138,12 @@ int main(int argc, char *argv[]) {
       std::istream_iterator<char>(),
       std::back_inserter(buffer));
 
-  std::string::const_iterator iter = buffer.begin();
+  std::string::const_iterator begin = buffer.begin();
   std::string::const_iterator end = buffer.end();
 
-  //bool r = parse(iter, end, g, list);
-  bool r = phrase_parse(iter, end, g, skip, list);
-  if (r && iter == end) {
+  bool r = phrase_parse(begin, end, g, skip, list);
+  //bool r = phrase_parse(begin, end, g, skip, list);
+  if (r && begin == end) {
     std::cout << "ok" <<  std::endl;
     for (std::vector<abook::abook_entry>::iterator it = list.begin() ; it != list.end(); ++it)
       std::cout << (*it) << std::endl;
