@@ -7,9 +7,11 @@
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/spirit/include/karma.hpp>
 #include <boost/fusion/include/io.hpp>
 #include <iostream>
 #include <fstream>
+#include <complex>
 
 /* Parse a file in abook format 
  * standard_wide is used to manage accents. */
@@ -19,11 +21,24 @@ namespace abook
 {
   struct abook_entry
   {
+    abook_entry()  {}
+    abook_entry(std::string n, std::string e): name(n), email(e) {}
+
     std::string name;
     std::string email;
     std::string mobile;
     std::string nick;
   };
+
+  // the streaming operator for the type complex
+  std::ostream&
+  operator<< (std::ostream& os, abook_entry const& z)
+  {
+    os << "name=" << z.name << std::endl;
+    os << "mail=" << z.email;
+    return os;
+  }
+
   typedef std::vector<abook_entry> book;
 }
 
@@ -57,7 +72,7 @@ BOOST_FUSION_ADAPT_STRUCT(
       }
     };  
 
-  // Our grammar (using a custom skipper to skip comments and empty lines )
+  // Our parser (using a custom skipper to skip comments and empty lines )
   template <typename Iterator, typename skipper = comment_skipper<Iterator> >
     struct abook_parser : qi::grammar<Iterator, book(), skipper>
   {
@@ -103,6 +118,24 @@ BOOST_FUSION_ADAPT_STRUCT(
     qi::rule<Iterator, book(), skipper> start;
     qi::rule<Iterator> header;
   };
+
+  // Generator
+  template <typename OutputIterator>
+    bool generate_complex(OutputIterator& sink, book const& b)
+    {
+      using boost::spirit::karma::stream;
+      using boost::spirit::karma::lit;
+      using boost::spirit::karma::string;
+      using boost::spirit::karma::double_;
+      using boost::spirit::karma::_1;
+      using boost::spirit::karma::generate;
+
+      bool r = generate(sink,
+          stream % ",",
+          b
+          );
+      return r;
+    }
 
   void write_to_file(book &list) {
     // To print the struct easily
@@ -153,7 +186,7 @@ int main(int argc, char *argv[]) {
   if (! read_file_to_buffer(argv[1], buffer))
     return 1;
 
-  std::string::const_iterator begin = buffer.begin();
+  /*std::string::const_iterator begin = buffer.begin();
   std::string::const_iterator end = buffer.end();
 
   bool r = phrase_parse(begin, end, g, skip, list);
@@ -164,6 +197,20 @@ int main(int argc, char *argv[]) {
   }
   else
     std::cout << "failed" << std::endl;
+    */
+  abook::abook_entry entry("John Doe", "jdoe@gmail.com");
+  list.push_back(entry);
+
+  std::string generated;
+  std::back_insert_iterator<std::string> sink(generated);
+  if (!abook::generate_complex(sink, list))
+  {
+    std::cout << "Generating failed\n";
+  }
+  else
+  {
+    std::cout << "Generated: " << generated << "\n";
+  }
 
   return 0;
 }
