@@ -104,11 +104,36 @@ BOOST_FUSION_ADAPT_STRUCT(
     qi::rule<Iterator> header;
   };
 
+  void write_to_file(book &list) {
+    // To print the struct easily
+    using namespace boost::fusion;
+
+    std::ofstream file("test.out", std::ios_base::out);
+                   
+    std::vector<abook_entry>::iterator it;
+    for (it = list.begin() ; it != list.end(); ++it)
+      file << tuple_delimiter("--") << (*it) << std::endl;
+  }
+}
+
+int read_file_to_buffer(char *fname, std::string &buffer) {
+  std::ifstream file(fname, std::ios_base::in);
+
+  if (!file) {
+    std::cout << "Failed to open file" << std::endl;
+    return 0;
+  }
+
+  // Read file into buffer
+  file.unsetf(std::ios::skipws); // No white space skipping!
+  std::copy(
+      std::istream_iterator<char>(file),
+      std::istream_iterator<char>(),
+      std::back_inserter(buffer));
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
-  // To print the struct easily
-  using namespace boost::fusion;
 
   typedef std::string::const_iterator iterator_type;
   typedef abook::abook_parser<iterator_type> abook_parser;
@@ -118,35 +143,24 @@ int main(int argc, char *argv[]) {
   comment_skipper skip;
   std::string str1, str2;
   abook::book list; // Struct to save data
+
   if (argc != 2) {
     std::cout << "Need a filename as argument" << std::endl;
     return 1;
   }
-  std::ifstream file(argv[1], std::ios_base::in);
 
-  if (!file) {
-    std::cout << "Failed to open file" << std::endl;
-    return 1;
-  }
-
-
-  // Read file into buffer
   std::string buffer; 
-  file.unsetf(std::ios::skipws); // No white space skipping!
-  std::copy(
-      std::istream_iterator<char>(file),
-      std::istream_iterator<char>(),
-      std::back_inserter(buffer));
+  if (! read_file_to_buffer(argv[1], buffer))
+    return 1;
 
   std::string::const_iterator begin = buffer.begin();
   std::string::const_iterator end = buffer.end();
 
   bool r = phrase_parse(begin, end, g, skip, list);
-  //bool r = phrase_parse(begin, end, g, skip, list);
+
   if (r && begin == end) {
-    std::cout << "ok" <<  std::endl;
-    for (std::vector<abook::abook_entry>::iterator it = list.begin() ; it != list.end(); ++it)
-      std::cout << (*it) << std::endl;
+    std::cout << "full match" <<  std::endl;
+    write_to_file(list);
   }
   else
     std::cout << "failed" << std::endl;
