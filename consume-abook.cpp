@@ -77,16 +77,24 @@ BOOST_FUSION_ADAPT_STRUCT(
   template <typename Iterator, typename skipper = comment_skipper<Iterator> >
     struct abook_parser : qi::grammar<Iterator, book(), skipper>
   {
-    abook_parser() : abook_parser::base_type(start)
+    abook_parser() : abook_parser::base_type(book_g)
     {
       using qi::_val;
       using qi::_1;
+      using qi::_2;
+      using qi::_3;
+      using qi::_4;
       using qi::int_;
       using qi::eol;
+      using qi::fail;
+      using qi::on_error;
       using standard_wide::char_;
       using phoenix::at_c;
       using phoenix::push_back;
+      using phoenix::construct;
+      using phoenix::val;
 
+      // We read any charactor different from eol
       value = +(char_ - eol) [_val += _1] >> eol;
 
       name %= "name=" >> value;
@@ -94,9 +102,10 @@ BOOST_FUSION_ADAPT_STRUCT(
       mobile %= "mobile=" >> value;
       nick %= "nick=" >> value;
 
+      // Only the name and the number are mandatory 
       entry = 
         "[" >> int_ >> "]" >> eol
-        >> name [at_c<0>(_val) = _1]
+        > name [at_c<0>(_val) = _1]
         >> *email [at_c<1>(_val) = _1 ]
         >> *mobile [at_c<2>(_val) = _1 ]
         >> *nick [at_c<3>(_val) = _1 ];
@@ -106,17 +115,33 @@ BOOST_FUSION_ADAPT_STRUCT(
         >> "program=" >> value
         >> "version=" >> value;
 
-      start = *header 
+      book_g = *header 
         >> *(entry [push_back(_val, _1)] >> *eol);
+
+      // Names for error handling
+      book_g.name("book_g");
+      header.name("header");
+      name.name("name");
+
+      on_error<fail>
+        (
+         book_g
+         , std::cout
+         << val("Error! Expecting ")
+         << _4                               // what failed?
+         << val(" here: \"")
+         << construct<std::string>(_3, _2)   // iterators to error-pos, end
+         << val("\"")
+         << std::endl
+        );
+
     }
 
     qi::rule<Iterator, std::string()> value;
     qi::rule<Iterator, std::string()> name;
-    qi::rule<Iterator, std::string()> email;
-    qi::rule<Iterator, std::string()> mobile;
-    qi::rule<Iterator, std::string()> nick;
+    qi::rule<Iterator, std::string()> email, mobile, nick;
     qi::rule<Iterator, abook_entry()> entry;
-    qi::rule<Iterator, book(), skipper> start;
+    qi::rule<Iterator, book(), skipper> book_g;
     qi::rule<Iterator> header;
   };
 
