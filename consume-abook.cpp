@@ -11,7 +11,6 @@
 #include <boost/fusion/include/io.hpp>
 #include <iostream>
 #include <fstream>
-#include <complex>
 
 /* Parse a file in abook format 
  * standard_wide is used to manage accents. */
@@ -58,7 +57,6 @@ BOOST_FUSION_ADAPT_STRUCT(
   namespace qi = boost::spirit::qi;
   namespace standard_wide = boost::spirit::standard_wide;
   namespace phoenix = boost::phoenix;
-  namespace fphoenix = boost::phoenix;
 
   // Skip comments and empty lines
   template<typename Iterator>
@@ -124,7 +122,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
   // Generator
   template <typename OutputIterator>
-    bool generate_complex(OutputIterator& sink, book const& b)
+    bool generate_book(OutputIterator& sink, book const& b)
     {
       using boost::spirit::karma::stream;
       using boost::spirit::karma::generate;
@@ -141,7 +139,8 @@ BOOST_FUSION_ADAPT_STRUCT(
     //std::ofstream file("test.out", std::ios_base::out);
     std::string generated;
     std::back_insert_iterator<std::string> sink(generated);
-    if (!abook::generate_complex(sink, list))
+
+    if (!abook::generate_book(sink, list))
       std::cout << "Generating failed\n";
     else
       std::cout << "Generated: " << generated << "\n";
@@ -165,39 +164,42 @@ int read_file_to_buffer(char *fname, std::string &buffer) {
   return 1;
 }
 
-int main(int argc, char *argv[]) {
-
+int parse_abook_file(char* fname, abook::book& list) {
   typedef std::string::const_iterator iterator_type;
   typedef abook::abook_parser<iterator_type> abook_parser;
   typedef abook::comment_skipper<iterator_type> comment_skipper;
 
   abook_parser g; // Our grammar
   comment_skipper skip;
-  std::string str1, str2;
-  abook::book list; // Struct to save data
-
-  if (argc != 2) {
-    std::cout << "Need a filename as argument" << std::endl;
-    return 1;
-  }
 
   std::string buffer; 
-  if (! read_file_to_buffer(argv[1], buffer))
-    return 1;
+  if (! read_file_to_buffer(fname, buffer))
+    return 0;
 
   std::string::const_iterator begin = buffer.begin();
   std::string::const_iterator end = buffer.end();
 
   bool r = phrase_parse(begin, end, g, skip, list);
 
-  if (r && begin == end) {
+  return r && begin == end;
+}
+
+int main(int argc, char *argv[]) {
+
+  if (argc != 2) {
+    std::cout << "Need a filename as argument" << std::endl;
+    return 1;
+  }
+
+  abook::book list; // Struct to save data
+  int res = parse_abook_file(argv[1], list);
+
+  if (res) {
     std::cout << "full match" <<  std::endl;
     write_to_file(list);
   }
   else
-    std::cout << "failed" << std::endl;
-
-  
+    std::cout << "parsing failed" << std::endl;
 
   return 0;
 }
