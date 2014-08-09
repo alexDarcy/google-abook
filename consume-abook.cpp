@@ -30,12 +30,15 @@ namespace abook
     std::string nick;
   };
 
-  // the streaming operator for the type complex
+  // the streaming operator needed for output
   std::ostream&
-  operator<< (std::ostream& os, abook_entry const& z)
+  operator<< (std::ostream& os, abook_entry const& e)
   {
-    os << "name=" << z.name << std::endl;
-    os << "mail=" << z.email;
+    os << "--------Entry---------" << std::endl;
+    os << "name=" << e.name << std::endl;
+    os << "mail=" << e.email << std::endl;
+    os << "mobile=" << e.mobile << std::endl;
+    os << "nick=" << e.nick;
     return os;
   }
 
@@ -99,7 +102,7 @@ BOOST_FUSION_ADAPT_STRUCT(
         >> *email [at_c<1>(_val) = _1 ]
         >> *mobile [at_c<2>(_val) = _1 ]
         >> *nick [at_c<3>(_val) = _1 ];
-      debug(entry);
+      //debug(entry);
 
       header = "[format]" >> eol
         >> "program=" >> value
@@ -124,28 +127,24 @@ BOOST_FUSION_ADAPT_STRUCT(
     bool generate_complex(OutputIterator& sink, book const& b)
     {
       using boost::spirit::karma::stream;
-      using boost::spirit::karma::lit;
-      using boost::spirit::karma::string;
-      using boost::spirit::karma::double_;
-      using boost::spirit::karma::_1;
       using boost::spirit::karma::generate;
+      using boost::spirit::eol;
 
       bool r = generate(sink,
-          stream % ",",
+          stream % eol,
           b
           );
       return r;
     }
 
   void write_to_file(book &list) {
-    // To print the struct easily
-    using namespace boost::fusion;
-
-    std::ofstream file("test.out", std::ios_base::out);
-                   
-    std::vector<abook_entry>::iterator it;
-    for (it = list.begin() ; it != list.end(); ++it)
-      file << tuple_delimiter("--") << (*it) << std::endl;
+    //std::ofstream file("test.out", std::ios_base::out);
+    std::string generated;
+    std::back_insert_iterator<std::string> sink(generated);
+    if (!abook::generate_complex(sink, list))
+      std::cout << "Generating failed\n";
+    else
+      std::cout << "Generated: " << generated << "\n";
   }
 }
 
@@ -186,7 +185,7 @@ int main(int argc, char *argv[]) {
   if (! read_file_to_buffer(argv[1], buffer))
     return 1;
 
-  /*std::string::const_iterator begin = buffer.begin();
+  std::string::const_iterator begin = buffer.begin();
   std::string::const_iterator end = buffer.end();
 
   bool r = phrase_parse(begin, end, g, skip, list);
@@ -197,20 +196,8 @@ int main(int argc, char *argv[]) {
   }
   else
     std::cout << "failed" << std::endl;
-    */
-  abook::abook_entry entry("John Doe", "jdoe@gmail.com");
-  list.push_back(entry);
 
-  std::string generated;
-  std::back_insert_iterator<std::string> sink(generated);
-  if (!abook::generate_complex(sink, list))
-  {
-    std::cout << "Generating failed\n";
-  }
-  else
-  {
-    std::cout << "Generated: " << generated << "\n";
-  }
+  
 
   return 0;
 }
