@@ -11,35 +11,46 @@
 #include <boost/fusion/include/io.hpp>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 /* Parse a file in abook format 
  * standard_wide is used to manage accents. */
 
+
 /* Structure to store data */
 namespace abook 
 {
+  typedef std::vector<std::string> list;
+
   struct abook_entry
   {
-    abook_entry()  {}
-    abook_entry(std::string n, std::string e): name(n), email(e) {}
-
     std::string name;
-    std::string email;
+    list email;
     std::string mobile;
     std::string nick;
+
+    abook_entry()  {}
+    abook_entry(std::string n, std::string e): name(n){
+      email.push_back(e);
+    }
   };
 
   // the streaming operator needed for output
   std::ostream&
-  operator<< (std::ostream& os, abook_entry const& e)
-  {
-    os << "--------Entry---------" << std::endl;
-    os << "name=" << e.name << std::endl;
-    os << "mail=" << e.email << std::endl;
-    os << "mobile=" << e.mobile << std::endl;
-    os << "nick=" << e.nick;
-    return os;
-  }
+    operator<< (std::ostream& os, abook_entry const& e)
+    {
+      os << "--------Entry---------" << std::endl;
+      os << "name=" << e.name << std::endl;
+      os << "mail=";
+      //for (list::iterator it = e.email.begin(); it != e.email.end(); ++it) 
+      BOOST_FOREACH(std::string s, e.email) {
+        os << s << "|";
+      }
+      os << std::endl;
+      os << "mobile=" << e.mobile << std::endl;
+      os << "nick=" << e.nick;
+      return os;
+    }
 
   typedef std::vector<abook_entry> book;
 }
@@ -47,12 +58,12 @@ namespace abook
 BOOST_FUSION_ADAPT_STRUCT(
     abook::abook_entry,
     (std::string, name)
-    (std::string, email)
+    (abook::list, email)
     (std::string, mobile)
     (std::string, nick)
-    )
+)
 
-  namespace abook
+namespace abook
 {
   namespace qi = boost::spirit::qi;
   namespace standard_wide = boost::spirit::standard_wide;
@@ -95,20 +106,26 @@ BOOST_FUSION_ADAPT_STRUCT(
       using phoenix::val;
 
       // We read any charactor different from eol
-      value = +(char_ - eol) [_val += _1] >> eol;
+      value = +(char_ - eol) [_val += _1] ;
+      email = +(char_ - ',' - eol) [_val += _1];
 
-      name %= "name=" >> value;
-      email %= "email=" >> value;
-      mobile %= "mobile=" >> value;
-      nick %= "nick=" >> value;
+      name %= "name=" >> value >> eol;
+      mobile %= "mobile=" >> value >> eol;
+      nick %= "nick=" >> value >> eol;
+
+      // A list of characters separated by ',' but we cannot have missing
+      // entries and only commas...
+      emails = "email=" 
+         >> email [push_back(_val, _1)] % ',' >> eol;
 
       // Only the name and the number are mandatory 
       entry = 
         "[" >> int_ >> "]" >> eol
-        > name [at_c<0>(_val) = _1]
-        >> *email [at_c<1>(_val) = _1 ]
+        >> name [at_c<0>(_val) = _1]
+        >> *emails [at_c<1>(_val) = _1]
         >> *mobile [at_c<2>(_val) = _1 ]
         >> *nick [at_c<3>(_val) = _1 ];
+
       //debug(entry);
 
       header = "[format]" >> eol
@@ -121,7 +138,7 @@ BOOST_FUSION_ADAPT_STRUCT(
       // Names for error handling
       book_g.name("book_g");
       header.name("header");
-      name.name("name");
+      entry.name("entry");
 
       on_error<fail>
         (
@@ -137,9 +154,9 @@ BOOST_FUSION_ADAPT_STRUCT(
 
     }
 
-    qi::rule<Iterator, std::string()> value;
-    qi::rule<Iterator, std::string()> name;
-    qi::rule<Iterator, std::string()> email, mobile, nick;
+    qi::rule<Iterator, std::string()> value, email;
+    qi::rule<Iterator, list()> emails;
+    qi::rule<Iterator, std::string()> name, mobile, nick;
     qi::rule<Iterator, abook_entry()> entry;
     qi::rule<Iterator, book(), skipper> book_g;
     qi::rule<Iterator> header;
@@ -160,12 +177,12 @@ BOOST_FUSION_ADAPT_STRUCT(
       return r;
     }
 
-  void write_to_file(book &list) {
+  void write_to_file(book &mybook) {
     //std::ofstream file("test.out", std::ios_base::out);
     std::string generated;
     std::back_insert_iterator<std::string> sink(generated);
 
-    if (!abook::generate_book(sink, list))
+    if (!abook::generate_book(sink, mybook))
       std::cout << "Generating failed\n";
     else
       std::cout << "Generated: " << generated << "\n";
@@ -189,7 +206,7 @@ int read_file_to_buffer(char *fname, std::string &buffer) {
   return 1;
 }
 
-int parse_abook_file(char* fname, abook::book& list) {
+int parse_abook_file(char* fname, abook::book& mybook) {
   typedef std::string::const_iterator iterator_type;
   typedef abook::abook_parser<iterator_type> abook_parser;
   typedef abook::comment_skipper<iterator_type> comment_skipper;
@@ -204,7 +221,7 @@ int parse_abook_file(char* fname, abook::book& list) {
   std::string::const_iterator begin = buffer.begin();
   std::string::const_iterator end = buffer.end();
 
-  bool r = phrase_parse(begin, end, g, skip, list);
+  bool r = phrase_parse(begin, end, g, skip, mybook);
 
   return r && begin == end;
 }
@@ -216,12 +233,12 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  abook::book list; // Struct to save data
-  int res = parse_abook_file(argv[1], list);
+  abook::book mybook; // Struct to save data
+  int res = parse_abook_file(argv[1], mybook);
 
   if (res) {
     std::cout << "full match" <<  std::endl;
-    write_to_file(list);
+    write_to_file(mybook);
   }
   else
     std::cout << "parsing failed" << std::endl;
