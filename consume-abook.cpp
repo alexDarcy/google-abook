@@ -6,9 +6,10 @@
 #include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
+//#include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/karma.hpp>
-#include <boost/fusion/include/io.hpp>
+#include <boost/fusion/sequence.hpp>
+#include <boost/fusion/include/sequence.hpp>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -22,52 +23,40 @@ namespace abook
 {
   typedef std::vector<std::string> list;
 
-  struct abook_entry
-  {
-    std::string name;
-    list email;
-    std::string nick;
-    std::string mobile;
-    std::string phone;
-    std::string workphone;
-
-    abook_entry()  {}
-    abook_entry(std::string n, std::string e): name(n){
-      email.push_back(e);
-    }
-  };
+  // Directly as a fusion, instead of using a struct
+  typedef boost::fusion::vector<
+    std::string, //name;
+    list, //email;
+    std::string, // nick;
+    std::string, // mobile;
+    std::string, // phone;
+    std::string // workphone;
+    > abook_entry;
 
   // the streaming operator needed for output
   std::ostream&
     operator<< (std::ostream& os, abook_entry const& e)
     {
+      using boost::fusion::at_c;
+      std::string test = at_c<0>(e);
       os << "--------Entry---------" << std::endl;
-      os << "name=" << e.name << std::endl;
-      os << "mail=";
-      //for (list::iterator it = e.email.begin(); it != e.email.end(); ++it) 
-      BOOST_FOREACH(std::string s, e.email) {
-        os << s << "|";
-      }
-      os << std::endl;
-      os << "nick=" << e.nick << std::endl;
-      os << "mobile=" << e.mobile << std::endl;
-      os << "phone=" << e.phone << std::endl;
-      os << "workphone=" << e.workphone;
+//      os << "name=" << at_c<0>(e) << std::endl;
+      os << "name=" << std::endl;
+  //    os << "mail=";
+  //    //for (list::iterator it = e.email.begin(); it != e.email.end(); ++it) 
+  //    BOOST_FOREACH(std::string s, e.email) {
+  //      os << s << "|";
+  //    }
+  //    os << std::endl;
+  //    os << "nick=" << e.nick << std::endl;
+  //    os << "mobile=" << e.mobile << std::endl;
+  //    os << "phone=" << e.phone << std::endl;
+  //    os << "workphone=" << e.workphone;
       return os;
     }
 
   typedef std::vector<abook_entry> book;
 }
-
-BOOST_FUSION_ADAPT_STRUCT(
-    abook::abook_entry,
-    (std::string, name)
-    (abook::list, email)
-    (std::string, nick)
-    (std::string, mobile)
-    (std::string, phone)
-    (std::string, workphone)
-)
 
 namespace abook
 {
@@ -181,9 +170,11 @@ namespace abook
       using boost::spirit::karma::stream;
       using boost::spirit::karma::generate;
       using boost::spirit::eol;
+      using standard_wide::char_;
 
       bool r = generate(sink,
-          stream % eol,
+          //stream % eol,
+          *char_,
           b
           );
       return r;
@@ -250,7 +241,7 @@ int main(int argc, char *argv[]) {
 
   if (res) {
     std::cout << "full match" <<  std::endl;
-    write_to_file(mybook);
+//    write_to_file(mybook);
   }
   else
     std::cout << "parsing failed" << std::endl;

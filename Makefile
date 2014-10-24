@@ -1,5 +1,5 @@
-#CXX=clang
-CXX=g++
+CXX=clang
+#CXX=g++
 CPPFLAGS=#-Wall -Wextra
 CPPFLAGS+=-I/home/alex/softwares/boost-1.56/      
 
