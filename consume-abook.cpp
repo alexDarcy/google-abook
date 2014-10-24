@@ -128,15 +128,16 @@ namespace abook
           // The last character may be a comma
           >>  *lit(',') >> eol;
 
-      // Only the name and the number are mandatory 
+      // Only the name is mandatory and should be the first entry
+      // Other values do not have a definite order
       entry = 
         "[" > int_ > "]" > eol
         > name [at_c<0>(_val) = _1]
-        >> *emails [at_c<1>(_val) = _1]
-        >> *nick [at_c<2>(_val) = _1 ]
-        >> *mobile [at_c<3>(_val) = _1 ]
-        >> *phone [at_c<4>(_val) = _1 ]
-        >> *workphone [at_c<5>(_val) = _1 ];
+        >> * (emails [at_c<1>(_val) = _1]
+            | nick [at_c<2>(_val) = _1 ]
+            | phone [at_c<4>(_val) = _1 ] 
+            | mobile [at_c<3>(_val) = _1 ]
+            | workphone [at_c<5>(_val) = _1 ]);
 
       //debug(entry);
 
