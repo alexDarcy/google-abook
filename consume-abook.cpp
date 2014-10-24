@@ -26,8 +26,10 @@ namespace abook
   {
     std::string name;
     list email;
-    std::string mobile;
     std::string nick;
+    std::string mobile;
+    std::string phone;
+    std::string workphone;
 
     abook_entry()  {}
     abook_entry(std::string n, std::string e): name(n){
@@ -47,8 +49,10 @@ namespace abook
         os << s << "|";
       }
       os << std::endl;
+      os << "nick=" << e.nick << std::endl;
       os << "mobile=" << e.mobile << std::endl;
-      os << "nick=" << e.nick;
+      os << "phone=" << e.phone << std::endl;
+      os << "workphone=" << e.workphone;
       return os;
     }
 
@@ -59,8 +63,10 @@ BOOST_FUSION_ADAPT_STRUCT(
     abook::abook_entry,
     (std::string, name)
     (abook::list, email)
-    (std::string, mobile)
     (std::string, nick)
+    (std::string, mobile)
+    (std::string, phone)
+    (std::string, workphone)
 )
 
 namespace abook
@@ -110,9 +116,11 @@ namespace abook
       value = +(char_ - eol) [_val += _1] ;
       email = +(char_ - ',' - eol) [_val += _1];
 
-      name %= "name=" >> value >> eol;
-      mobile %= "mobile=" >> value >> eol;
-      nick %= "nick=" >> value >> eol;
+      name %= "name=" > value > eol;
+      nick %= "nick=" > value > eol;
+      mobile %= "mobile=" > value > eol;
+      phone %= "phone=" > value > eol;
+      workphone %= "workphone=" > value > eol;
 
       emails = "email=" 
           // A list of characters separated by ',' 
@@ -125,8 +133,10 @@ namespace abook
         "[" > int_ > "]" > eol
         > name [at_c<0>(_val) = _1]
         >> *emails [at_c<1>(_val) = _1]
-        >> *mobile [at_c<2>(_val) = _1 ]
-        >> *nick [at_c<3>(_val) = _1 ];
+        >> *nick [at_c<2>(_val) = _1 ]
+        >> *mobile [at_c<3>(_val) = _1 ]
+        >> *phone [at_c<4>(_val) = _1 ]
+        >> *workphone [at_c<5>(_val) = _1 ];
 
       //debug(entry);
 
@@ -156,7 +166,8 @@ namespace abook
 
     qi::rule<Iterator, std::string()> value, email;
     qi::rule<Iterator, list()> emails;
-    qi::rule<Iterator, std::string()> name, mobile, nick;
+    qi::rule<Iterator, std::string()> name, nick;
+    qi::rule<Iterator, std::string()> mobile, phone, workphone;
     qi::rule<Iterator, abook_entry()> entry;
     qi::rule<Iterator, book(), skipper> book_g;
     qi::rule<Iterator> header;
