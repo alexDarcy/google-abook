@@ -98,6 +98,7 @@ namespace abook
       using qi::int_;
       using qi::eol;
       using qi::fail;
+      using qi::lit;
       using qi::on_error;
       using standard_wide::char_;
       using phoenix::at_c;
@@ -113,10 +114,11 @@ namespace abook
       mobile %= "mobile=" >> value >> eol;
       nick %= "nick=" >> value >> eol;
 
-      // A list of characters separated by ',' but we cannot have missing
-      // entries and only commas...
       emails = "email=" 
-         >> email [push_back(_val, _1)] % ',' >> eol;
+          // A list of characters separated by ',' 
+          >> email [push_back(_val, _1)] % ',' 
+          // The last character may be a comma
+          >>  *lit(',') >> eol;
 
       // Only the name and the number are mandatory 
       entry = 
