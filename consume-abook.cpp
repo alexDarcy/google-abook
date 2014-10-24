@@ -122,8 +122,8 @@ namespace abook
 
       // Only the name and the number are mandatory 
       entry = 
-        "[" >> int_ >> "]" >> eol
-        >> name [at_c<0>(_val) = _1]
+        "[" > int_ > "]" > eol
+        > name [at_c<0>(_val) = _1]
         >> *emails [at_c<1>(_val) = _1]
         >> *mobile [at_c<2>(_val) = _1 ]
         >> *nick [at_c<3>(_val) = _1 ];
@@ -131,10 +131,10 @@ namespace abook
       //debug(entry);
 
       header = "[format]" >> eol
-        >> "program=" >> value
-        >> "version=" >> value;
+        > "program=" >> value >> eol
+        > "version=" >> value >> eol;
 
-      book_g = *header 
+      book_g = header 
         >> *(entry [push_back(_val, _1)] >> *eol);
 
       // Names for error handling
@@ -144,11 +144,9 @@ namespace abook
 
       on_error<fail>
         (
-         book_g
+         header
          , std::cout
-         << val("Error! Expecting ")
-         << _4                               // what failed?
-         << val(" here: \"")
+         << val("Error! Expecting ") << _4 << val(" here: \"")
          << construct<std::string>(_3, _2)   // iterators to error-pos, end
          << val("\"")
          << std::endl
