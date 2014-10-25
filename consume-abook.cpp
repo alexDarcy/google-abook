@@ -1,66 +1,13 @@
 //#define BOOST_SPIRIT_DEBUG
-#include <boost/config/warning_disable.hpp>
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
-#include <boost/spirit/include/phoenix_fusion.hpp>
-#include <boost/spirit/include/phoenix_stl.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
-#include <boost/spirit/include/karma.hpp>
-#include <boost/fusion/include/io.hpp>
-#include <iostream>
-#include <fstream>
-#include <vector>
-
+#include "abook.hpp"
 /* Parse a file in abook format 
  * standard_wide is used to manage accents. */
 
 
 /* Structure to store data */
-namespace abook 
-{
-  typedef std::vector<std::string> list;
-
-  struct abook_entry
-  {
-    std::string name;
-    list email;
-    std::string nick;
-    std::string mobile;
-    std::string phone;
-    std::string workphone;
-
-    abook_entry()  {}
-    abook_entry(std::string n, std::string e): name(n){
-      email.push_back(e);
-    }
-  };
-
-  // the streaming operator needed for output
-  std::ostream&
-    operator<< (std::ostream& os, abook_entry const& e)
-    {
-      os << "--------Entry---------" << std::endl;
-      os << "name=" << e.name << std::endl;
-      os << "mail=";
-      //for (list::iterator it = e.email.begin(); it != e.email.end(); ++it) 
-      BOOST_FOREACH(std::string s, e.email) {
-        os << s << "|";
-      }
-      os << std::endl;
-      os << "nick=" << e.nick << std::endl;
-      os << "mobile=" << e.mobile << std::endl;
-      os << "phone=" << e.phone << std::endl;
-      os << "workphone=" << e.workphone;
-      return os;
-    }
-
-  typedef std::vector<abook_entry> book;
-}
 
 BOOST_FUSION_ADAPT_STRUCT(
-    abook::abook_entry,
+    abook::contact,
     (std::string, name)
     (abook::list, email)
     (std::string, nick)
@@ -69,112 +16,31 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, workphone)
 )
 
-namespace abook
+namespace google
 {
-  namespace qi = boost::spirit::qi;
-  namespace standard_wide = boost::spirit::standard_wide;
-  namespace phoenix = boost::phoenix;
-
-  // Skip comments and empty lines
-  template<typename Iterator>
-    struct comment_skipper : public qi::grammar<Iterator> {
-
-      qi::rule<Iterator> skip;
-
-      comment_skipper() : comment_skipper::base_type(skip)
-      {
-        using namespace qi;
-        skip = (lit("#") >> *(standard::char_ - eol) >> eol) 
-          | +(*(standard_wide::blank) >> eol);
-        //debug(skip);
-      }
-    };  
-
-  // Our parser (using a custom skipper to skip comments and empty lines )
-  template <typename Iterator, typename skipper = comment_skipper<Iterator> >
-    struct abook_parser : qi::grammar<Iterator, book(), skipper>
+  struct contact
   {
-    abook_parser() : abook_parser::base_type(book_g)
-    {
-      using qi::_val;
-      using qi::_1;
-      using qi::_2;
-      using qi::_3;
-      using qi::_4;
-      using qi::int_;
-      using qi::eol;
-      using qi::fail;
-      using qi::lit;
-      using qi::on_error;
-      using standard_wide::char_;
-      using phoenix::at_c;
-      using phoenix::push_back;
-      using phoenix::construct;
-      using phoenix::val;
+    std::string name;
+    std::string given_name;
+    std::string additional_name;
+    std::string family_name;
 
-      // We read any charactor different from eol
-      value = +(char_ - eol) [_val += _1] ;
-      email = +(char_ - ',' - eol) [_val += _1];
-
-      name %= "name=" > value > eol;
-      nick %= "nick=" > value > eol;
-      mobile %= "mobile=" > value > eol;
-      phone %= "phone=" > value > eol;
-      workphone %= "workphone=" > value > eol;
-
-      emails = "email=" 
-          // A list of characters separated by ',' 
-          >> email [push_back(_val, _1)] % ',' 
-          // The last character may be a comma
-          >>  *lit(',') >> eol;
-
-      // Only the name is mandatory and should be the first entry
-      // Other values do not have a definite order
-      entry = 
-        "[" > int_ > "]" > eol
-        > name [at_c<0>(_val) = _1]
-        >> * (emails [at_c<1>(_val) = _1]
-            | nick [at_c<2>(_val) = _1 ]
-            | phone [at_c<4>(_val) = _1 ] 
-            | mobile [at_c<3>(_val) = _1 ]
-            | workphone [at_c<5>(_val) = _1 ]);
-
-      //debug(entry);
-
-      header = "[format]" >> eol
-        > "program=" >> value >> eol
-        > "version=" >> value >> eol;
-
-      book_g = header 
-        >> *(entry [push_back(_val, _1)] >> *eol);
-
-      // Names for error handling
-      book_g.name("book_g");
-      header.name("header");
-      entry.name("entry");
-
-      on_error<fail>
-        (
-         header
-         , std::cout
-         << val("Error! Expecting ") << _4 << val(" here: \"")
-         << construct<std::string>(_3, _2)   // iterators to error-pos, end
-         << val("\"")
-         << std::endl
-        );
-
+    contact(abook::contact cur){
+      name = cur.name;
     }
 
-    qi::rule<Iterator, std::string()> value, email;
-    qi::rule<Iterator, list()> emails;
-    qi::rule<Iterator, std::string()> name, nick;
-    qi::rule<Iterator, std::string()> mobile, phone, workphone;
-    qi::rule<Iterator, abook_entry()> entry;
-    qi::rule<Iterator, book(), skipper> book_g;
-    qi::rule<Iterator> header;
   };
+  // the streaming operator needed for output
+  std::ostream&
+    operator<< (std::ostream& os, contact const& e)
+    {
+      os << e.name << "," << e.given_name << ",";
+      return os;
+    }
 
-  // Generator
+  typedef std::vector<contact> book;
+
+  // Generator for outputing the data
   template <typename OutputIterator>
     bool generate_book(OutputIterator& sink, book const& b)
     {
@@ -189,17 +55,52 @@ namespace abook
       return r;
     }
 
-  void write_to_file(book &mybook) {
-    //std::ofstream file("test.out", std::ios_base::out);
+  void write_csv_header() {
+    std::cout << "Name,Given Name,Additional Name,Family Name,";
+    std::cout << "Yomi Name,Given Name Yomi,Additional Name Yomi,Family Name Yomi,";
+    std::cout << "Name Prefix,Name Suffix,Initials,Nickname,Short Name,Maiden Name,";
+    std::cout << "Birthday,Gender,Location,Billing Information,";
+    std::cout << "Directory Server,Mileage,Occupation,Hobby,Sensitivity,";
+    std::cout << "Priority,Subject,Notes,Group Membership,";
+    std::cout << "E-mail 1 - Type,E-mail 1 - Value,";
+    std::cout << "E-mail 2 - Type,E-mail 2 - Value,";
+    std::cout << "E-mail 3 - Type,E-mail 3 - Value,";
+    std::cout << "IM 1 - Type,IM 1 - Service,IM 1 - Value,";
+    std::cout << "Phone 1 - Type,Phone 1 - Value,";
+    std::cout << "Phone 2 - Type,Phone 2 - Value,";
+    std::cout << "Phone 3 - Type,Phone 3 - Value,";
+    std::cout << "Address 1 - Type,Address 1 - Formatted,";
+    std::cout << "Address 1 - Street,Address 1 - City,Address 1 - PO Box,";
+    std::cout << "Address 1 - Region,Address 1 - Postal Code,Address 1 - Country,";
+    std::cout << "Address 1 - Extended Address,Organization 1 - Type,";
+    std::cout << "Organization 1 - Name,Organization 1 - Yomi Name,";
+    std::cout << "Organization 1 - Title,Organization 1 - Department,";
+    std::cout << "Organization 1 - Symbol,Organization 1 - Location,";
+    std::cout << "Organization 1 - Job Description,";
+    std::cout << "Website 1 - Type,Website 1 - Value,";
+    std::cout << "Website 2 - Type,Website 2 - Value,";
+    std::cout << "Website 3 - Type,Website 3 - Value" << std::endl;
+  }
+
+  // Convert from abook to google format and output it
+  void write_contacts(abook::book& old_contacts) {
+    // Convert from abook to google format
+    book new_contacts(old_contacts.begin(), old_contacts.end());
+
     std::string generated;
     std::back_insert_iterator<std::string> sink(generated);
 
-    if (!abook::generate_book(sink, mybook))
+    if (!generate_book(sink, new_contacts))
       std::cout << "Generating failed\n";
     else
-      std::cout << "Generated: " << generated << "\n";
+    {
+      write_csv_header();
+      std::cout << generated << std::endl;
+    }
   }
+
 }
+
 
 int read_file_to_buffer(char *fname, std::string &buffer) {
   std::ifstream file(fname, std::ios_base::in);
@@ -250,7 +151,8 @@ int main(int argc, char *argv[]) {
 
   if (res) {
     std::cout << "full match" <<  std::endl;
-    write_to_file(mybook);
+    //write_to_file(mybook);
+    google::write_contacts(mybook);
   }
   else
     std::cout << "parsing failed" << std::endl;
