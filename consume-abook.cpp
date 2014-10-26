@@ -24,17 +24,160 @@ namespace google
     std::string given_name;
     std::string additional_name;
     std::string family_name;
-
+    std::string yomi_name;
+    std::string given_name_yomi;
+    std::string additional_name_yomi;
+    std::string family_name_yomi;
+    std::string name_prefix;
+    std::string name_suffix;
+    std::string initials;
+    std::string nickname;
+    std::string short_name;
+    std::string maiden_name;
+    std::string birthday;
+    std::string gender;
+    std::string location;
+    std::string billing_information;
+    std::string directory_server;
+    std::string mileage;
+    std::string occupation;
+    std::string hobby;
+    std::string sensitivity;
+    std::string priority;
+    std::string subject;
+    std::string notes;
+    std::string group_membership;
+    std::string email_1_type;
+    std::string email_1_value;
+    std::string email_2_type;
+    std::string email_2_value;
+    std::string email_3_type;
+    std::string email_3_value;
+    std::string im_type;
+    std::string im_service;
+    std::string im_value;
+    std::string phone_1_type;
+    std::string phone_1_value;
+    std::string phone_2_type;
+    std::string phone_2_value;
+    std::string phone_3_type;
+    std::string phone_3_value;
+    std::string address_1_type;
+    std::string address_1_formatted;
+    std::string address_1_street;
+    std::string address_1_city;
+    std::string address_1_po_box;
+    std::string address_1_region;
+    std::string address_1_postal_code;
+    std::string address_1_country;
+    std::string address_1_extended_address;
+    std::string organization_type;
+    std::string organization_name;
+    std::string organization_yomi_name;
+    std::string organization_title;
+    std::string organization_department;
+    std::string organization_symbol;
+    std::string organization_location;
+    std::string organization_job_description;
+    std::string website_1_type;
+    std::string website_1_value;
+    std::string website_2_type;
+    std::string website_2_value;
+    std::string website_3_type;
+    std::string website_3_value;
+    
+    // The conversion from abook to google is really done here
     contact(abook::contact cur){
+      std::string::size_type n;
       name = cur.name;
-    }
 
+      // Extract the other names
+      try {
+        n = name.find(" ");
+        given_name = name.substr(0, n);
+        family_name = name.substr(n+1, name.size());
+      }
+      catch (const std::out_of_range& oor)  {
+        std::cout << "Warning: no family name for " << name << std::endl;
+      }
+    }
   };
+}
+
+  /* Easier output */
+  BOOST_FUSION_ADAPT_STRUCT(
+      google::contact,
+      (std::string, name)
+      (std::string, given_name)
+      (std::string, additional_name)
+      (std::string, family_name)
+      (std::string, name_prefix)
+      (std::string, name_suffix)
+      (std::string, initials)
+      (std::string, nickname)
+      (std::string, short_name)
+      (std::string, maiden_name)
+      (std::string, birthday)
+      (std::string, gender)
+      (std::string, location)
+      (std::string, billing_information)
+      (std::string, directory_server)
+      (std::string, mileage)
+      (std::string, occupation)
+      (std::string, hobby)
+      (std::string, sensitivity)
+      (std::string, priority)
+      (std::string, subject)
+      (std::string, notes)
+      (std::string, group_membership)
+      (std::string, email_1_type)
+      (std::string, email_1_value)
+      (std::string, email_2_type)
+      (std::string, email_2_value)
+      (std::string, email_3_type)
+      (std::string, email_3_value)
+      (std::string, im_type)
+      (std::string, im_service)
+      (std::string, im_value)
+      (std::string, phone_1_type)
+      (std::string, phone_1_value)
+      (std::string, phone_2_type)
+      (std::string, phone_2_value)
+      (std::string, phone_3_type)
+      (std::string, phone_3_value)
+      (std::string, address_1_type)
+      (std::string, address_1_formatted)
+      (std::string, address_1_street)
+      (std::string, address_1_city)
+      (std::string, address_1_po_box)
+      (std::string, address_1_region)
+      (std::string, address_1_postal_code)
+      (std::string, address_1_country)
+      (std::string, address_1_extended_address)
+      (std::string, organization_type)
+      (std::string, organization_name)
+      (std::string, organization_yomi_name)
+      (std::string, organization_title)
+      (std::string, organization_department)
+      (std::string, organization_symbol)
+      (std::string, organization_location)
+      (std::string, organization_job_description)
+      (std::string, website_1_type)
+      (std::string, website_1_value)
+      (std::string, website_2_type)
+      (std::string, website_2_value)
+      (std::string, website_3_type)
+      (std::string, website_3_value)
+)
+
+namespace google
+{
+  using boost::phoenix::arg_names::arg1;
   // the streaming operator needed for output
   std::ostream&
     operator<< (std::ostream& os, contact const& e)
     {
-      os << e.name << "," << e.given_name << ",";
+      boost::fusion::for_each(e, os << arg1 << ",");
       return os;
     }
 
