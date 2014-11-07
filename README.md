@@ -35,7 +35,7 @@ We use the following format for abook:
 
     {name, [email], nick, mobile, phone, workphone}
 
-The syntax for google contacts can be found in google.hpp but we show here the
+The syntax for google contacts can be found in [google.hpp](google.hpp) but we show here the
 relevant correspondances between the two formats :
 
 | Abook     | Google contacts                |
