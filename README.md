@@ -1,4 +1,4 @@
-consume-abook
+google-abook
 =============
 
 Converts a list of contacts from the abook format to Google contacts format
@@ -6,16 +6,18 @@ using Boost. Only this conversion is available at the moment.
 
 ## Requirements
 
-It requires Boost and has been tested successfully with Boost 1.56.
-The code compiles with gcc but fails to link with clang.
+* Boost (tested with 1.56)
+* g++ (tested with 4.9.1) or clang++ (3.5.0)
 
 ## Usage
 
-Edit the makefile if Boost is installed in a non-standard location. Then compile
-and run:
+Build with `make`. If Boost is not at a standard location, use instead 
+
+    make BOOST_DIR==/home/myboost
+
+Convert your abook to google contacts with :
     
-    make
-    ./consume-abook input output
+    ./consume-abook myabook mygoogle
 
 ## Technical details
 ### Caveat
@@ -35,19 +37,17 @@ We use the following format for abook:
 
     {name, [email], nick, mobile, phone, workphone}
 
-The syntax for google contacts can be found in google.hpp but we show here the
+The syntax for google contacts can be found in [google.hpp](google.hpp) but we show here the
 relevant correspondances between the two formats :
 
-   | Abook     | Google contacts                |
-   ------------|---------------------------------
-   | name      | name, given_name, family_name  |
-   ------------|---------------------------------
-   | mobile    | phone_1                        |
-   | phone     | phone_2                        |
-   | workphone | phone_3                        |
-   ------------|---------------------------------
-   | email[0]  | email_1                        |
-   | email[1]  | email_2                        |
-   | email[2]  | email_3                        |
+| Abook     | Google contacts                |
+------------|---------------------------------
+| name      | name, given_name, family_name  |
+| mobile    | phone_1                        |
+| phone     | phone_2                        |
+| workphone | phone_3                        |
+| email[0]  | email_1                        |
+| email[1]  | email_2                        |
+| email[2]  | email_3                        |
 
 

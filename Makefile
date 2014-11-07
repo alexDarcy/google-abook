@@ -1,13 +1,12 @@
-#CXX=clang
+#CXX=clang++
 CXX=g++
-CPPFLAGS=#-Wall -Wextra
-CPPFLAGS+=-I/home/alex/softwares/boost-1.56/      
+CPPFLAGS=-I${BOOST_DIR} -Wall -g
 
 
-consume-abook: consume-abook.o 
+google-abook: google-abook.o 
 	${CXX} ${CPPFLAGS} -o $@ $<
 
-consume-abook.o: google.hpp abook.hpp
+google-abook.o: google.hpp abook.hpp
 
 clean:
-	rm -f *.o consume-abook
+	rm -f *.o google-abook
