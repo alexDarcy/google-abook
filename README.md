@@ -38,16 +38,14 @@ We use the following format for abook:
 The syntax for google contacts can be found in google.hpp but we show here the
 relevant correspondances between the two formats :
 
-   | Abook     | Google contacts                |
-   ------------|---------------------------------
-   | name      | name, given_name, family_name  |
-   ------------|---------------------------------
-   | mobile    | phone_1                        |
-   | phone     | phone_2                        |
-   | workphone | phone_3                        |
-   ------------|---------------------------------
-   | email[0]  | email_1                        |
-   | email[1]  | email_2                        |
-   | email[2]  | email_3                        |
+| Abook     | Google contacts                |
+------------|---------------------------------
+| name      | name, given_name, family_name  |
+| mobile    | phone_1                        |
+| phone     | phone_2                        |
+| workphone | phone_3                        |
+| email[0]  | email_1                        |
+| email[1]  | email_2                        |
+| email[2]  | email_3                        |
 
 
