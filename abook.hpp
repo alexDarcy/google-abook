@@ -15,6 +15,7 @@
 #include <fstream>
 #include <vector>
 
+/* standard_wide is used to manage accents. */
 namespace abook 
 {
   typedef std::vector<std::string> list;
@@ -33,7 +34,22 @@ namespace abook
       email.push_back(e);
     }
   };
+}
 
+/* Structure to store data */
+
+BOOST_FUSION_ADAPT_STRUCT(
+    abook::contact,
+    (std::string, name)
+    (abook::list, email)
+    (std::string, nick)
+    (std::string, mobile)
+    (std::string, phone)
+    (std::string, workphone)
+)
+
+namespace abook 
+{
   // the streaming operator needed for output
   std::ostream&
     operator<< (std::ostream& os, contact const& e)
