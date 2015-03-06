@@ -1,4 +1,4 @@
-consume-abook
+google-abook
 =============
 
 Converts a list of contacts from the abook format to Google contacts format
@@ -6,16 +6,18 @@ using Boost. Only this conversion is available at the moment.
 
 ## Requirements
 
-It requires Boost and has been tested successfully with Boost 1.56.
-The code compiles with gcc but fails to link with clang.
+* Boost (tested with 1.56)
+* g++ (tested with 4.9.1) or clang++ (3.5.0)
 
 ## Usage
 
-Edit the makefile if Boost is installed in a non-standard location. Then compile
-and run:
+Compile with a default Boost location :
+
+    make BOOST_DIR=
+
+Convert your abook to google contacts with :
     
-    make
-    ./consume-abook input output
+    ./consume-abook myabook mygoogle
 
 ## Technical details
 ### Caveat
