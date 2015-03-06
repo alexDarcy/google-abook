@@ -1,6 +1,8 @@
 google-abook
 =============
 
+![Build status](https://travis-ci.org/alexDarcy/google-abook.svg)
+
 Converts a list of contacts from the abook format to Google contacts format
 using Boost. Only this conversion is available at the moment.
 
