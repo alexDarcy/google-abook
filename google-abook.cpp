@@ -22,7 +22,7 @@ int read_file_to_buffer(char *fname, std::string &buffer) {
   return 1;
 }
 
-int parse_abook_file(char* fname, abook::book& mybook) {
+int parse_abook_file(char* fname, abook::addressbook& mybook) {
   typedef std::string::const_iterator iterator_type;
   typedef abook::abook_parser<iterator_type> abook_parser;
   typedef abook::comment_skipper<iterator_type> comment_skipper;
@@ -42,6 +42,19 @@ int parse_abook_file(char* fname, abook::book& mybook) {
   return r && begin == end;
 }
 
+void abook_to_google(char* in, char* out) {
+  abook::addressbook mybook; // Struct to save data
+  int res = parse_abook_file(in, mybook);
+
+  if (res) {
+    std::cout << "full match" <<  std::endl;
+    //write_to_file(mybook);
+    google::write_contacts(out, mybook);
+  }
+  else
+    std::cout << "parsing failed" << std::endl;
+}
+
 int main(int argc, char *argv[]) {
 
   if (argc != 3) {
@@ -50,16 +63,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  abook::book mybook; // Struct to save data
-  int res = parse_abook_file(argv[1], mybook);
-
-  if (res) {
-    std::cout << "full match" <<  std::endl;
-    //write_to_file(mybook);
-    google::write_contacts(argv[2], mybook);
-  }
-  else
-    std::cout << "parsing failed" << std::endl;
+  abook_to_google(argv[1], argv[2]);
 
   return 0;
 }

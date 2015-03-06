@@ -208,20 +208,52 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 namespace google 
 {
-  using boost::phoenix::arg_names::arg1;
+  typedef std::vector<contact> addressbook;
+
+  namespace qi = boost::spirit::qi;
+  namespace phoenix = boost::phoenix;
+
+
+  // Skip comments and empty lines
+  template<typename Iterator>
+    struct comment_skipper : public qi::grammar<Iterator> {
+
+      qi::rule<Iterator> skip;
+
+      comment_skipper() : comment_skipper::base_type(skip)
+      {
+        using namespace qi;
+        skip = (lit("#") >> *(standard::char_ - eol) >> eol) 
+          | +(*(standard_wide::blank) >> eol);
+        //debug(skip);
+      }
+    };  
+
+  // Our parser (using a custom skipper to skip comments and empty lines )
+  template <typename Iterator, typename skipper = comment_skipper<Iterator> >
+    struct google_parser : qi::grammar<Iterator, addressbook(), skipper>
+  {
+    google_parser() : google_parser::base_type(contacts)
+    {
+      using qi::eol;
+      contacts = "Name" >> eol;
+    }
+
+    qi::rule<Iterator, addressbook(), skipper> contacts;
+  };
+
   // the streaming operator needed for output
   std::ostream&
     operator<< (std::ostream& os, contact const& e)
     {
+      using boost::phoenix::arg_names::arg1;
       boost::fusion::for_each(e, os << arg1 << ",");
       return os;
     }
 
-  typedef std::vector<contact> book;
-
   // Generator for outputing the data
   template <typename OutputIterator>
-    bool generate_book(OutputIterator& sink, book const& b)
+    bool generate_book(OutputIterator& sink, addressbook const& b)
     {
       using boost::spirit::karma::stream;
       using boost::spirit::karma::generate;
@@ -233,6 +265,8 @@ namespace google
           );
       return r;
     }
+
+  
 
   void write_csv_header(std::ofstream& file) {
     file << "Name,Given Name,Additional Name,Family Name,";
@@ -262,11 +296,11 @@ namespace google
   }
 
   // Convert from abook to google format and output it
-  void write_contacts(char* fname, abook::book& old_contacts) {
+  void write_contacts(char* fname, abook::addressbook& old_contacts) {
     std::ofstream file(fname, std::ios_base::out);
 
     // Convert from abook to google format
-    book new_contacts(old_contacts.begin(), old_contacts.end());
+    addressbook new_contacts(old_contacts.begin(), old_contacts.end());
 
     std::string generated;
     std::back_insert_iterator<std::string> sink(generated);
