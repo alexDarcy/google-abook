@@ -1,6 +1,5 @@
-CXX=clang++
-#CXX=g++
-BOOST_DIR=/home/softwares/boost-1.56
+#CXX=clang++
+CXX=g++
 CPPFLAGS=-I${BOOST_DIR} -Wall -g
 
 

@@ -11,9 +11,9 @@ using Boost. Only this conversion is available at the moment.
 
 ## Usage
 
-Compile with a default Boost location :
+Build with `make`. If Boost is not at a standard location, use instead 
 
-    make BOOST_DIR=
+    make BOOST_DIR==/home/myboost
 
 Convert your abook to google contacts with :
     
