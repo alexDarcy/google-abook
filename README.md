@@ -11,9 +11,13 @@ using Boost. Only this conversion is available at the moment.
 
 ## Usage
 
-Compile with a default Boost location :
+Configure the project and build it :
 
-    make BOOST_DIR=
+    ./configure && make
+
+If Boost is not at a standard location :
+
+    ./configure --with-boost=/home/myboost && make 
 
 Convert your abook to google contacts with :
     
