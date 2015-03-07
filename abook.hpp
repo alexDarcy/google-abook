@@ -15,6 +15,27 @@
 #include <fstream>
 #include <vector>
 
+
+/* We assume the file to be UTF-8. Use iconv if needed */
+int read_file_to_buffer(char *fname, std::string &buffer) {
+  std::ifstream file(fname, std::ios_base::in);
+
+  if (!file) {
+    std::cout << "Failed to open file" << std::endl;
+    return 0;
+  }
+
+  std::cout << "reading" << fname << std::endl;
+  // Read file into buffer
+  file.unsetf(std::ios::skipws); // No white space skipping!
+  std::copy(
+      std::istream_iterator<char>(file),
+      std::istream_iterator<char>(),
+      std::back_inserter(buffer));
+  return 1;
+}
+
+
 /* standard_wide is used to manage accents. */
 namespace abook 
 {
@@ -50,26 +71,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 namespace abook 
 {
-  // the streaming operator needed for output
-  std::ostream&
-    operator<< (std::ostream& os, contact const& e)
-    {
-      os << "--------contact---------" << std::endl;
-      os << "name=" << e.name << std::endl;
-      os << "mail=";
-      //for (list::iterator it = e.email.begin(); it != e.email.end(); ++it) 
-      BOOST_FOREACH(std::string s, e.email) {
-        os << s << "|";
-      }
-      os << std::endl;
-      os << "nick=" << e.nick << std::endl;
-      os << "mobile=" << e.mobile << std::endl;
-      os << "phone=" << e.phone << std::endl;
-      os << "workphone=" << e.workphone;
-      return os;
-    }
-
-  typedef std::vector<contact> book;
+  typedef std::vector<contact> addressbook;
 
   namespace qi = boost::spirit::qi;
   namespace standard_wide = boost::spirit::standard_wide;
@@ -92,9 +94,9 @@ namespace abook
 
   // Our parser (using a custom skipper to skip comments and empty lines )
   template <typename Iterator, typename skipper = comment_skipper<Iterator> >
-    struct abook_parser : qi::grammar<Iterator, book(), skipper>
+    struct abook_parser : qi::grammar<Iterator, addressbook(), skipper>
   {
-    abook_parser() : abook_parser::base_type(book_g)
+    abook_parser() : abook_parser::base_type(contacts)
     {
       using qi::_val;
       using qi::_1;
@@ -141,15 +143,15 @@ namespace abook
 
       //debug(entry);
 
-      header = "[format]" >> eol
+      header = ("[format]" >> eol)
         > "program=" >> value >> eol
         > "version=" >> value >> eol;
 
-      book_g = header 
+      contacts = header 
         >> *(entry [push_back(_val, _1)] >> *eol);
 
       // Names for error handling
-      book_g.name("book_g");
+      contacts.name("contacts");
       header.name("header");
       entry.name("entry");
 
@@ -170,13 +172,32 @@ namespace abook
     qi::rule<Iterator, std::string()> name, nick;
     qi::rule<Iterator, std::string()> mobile, phone, workphone;
     qi::rule<Iterator, contact()> entry;
-    qi::rule<Iterator, book(), skipper> book_g;
+    qi::rule<Iterator, addressbook(), skipper> contacts;
     qi::rule<Iterator> header;
   };
 
+  // the streaming operator needed for output
+  std::ostream&
+    operator<< (std::ostream& os, contact const& e)
+    {
+      os << "--------contact---------" << std::endl;
+      os << "name=" << e.name << std::endl;
+      os << "mail=";
+      //for (list::iterator it = e.email.begin(); it != e.email.end(); ++it) 
+      BOOST_FOREACH(std::string s, e.email) {
+        os << s << "|";
+      }
+      os << std::endl;
+      os << "nick=" << e.nick << std::endl;
+      os << "mobile=" << e.mobile << std::endl;
+      os << "phone=" << e.phone << std::endl;
+      os << "workphone=" << e.workphone;
+      return os;
+    }
+
   // Generator for outputing the data
   template <typename OutputIterator>
-    bool generate_book(OutputIterator& sink, book const& b)
+    bool generate_addressbook(OutputIterator& sink, addressbook const& b)
     {
       using boost::spirit::karma::stream;
       using boost::spirit::karma::generate;
@@ -189,12 +210,12 @@ namespace abook
       return r;
     }
 
-  void write_to_file(book &mybook) {
+  void write_to_file(addressbook &mybook) {
     //std::ofstream file("test.out", std::ios_base::out);
     std::string generated;
     std::back_insert_iterator<std::string> sink(generated);
 
-    if (!abook::generate_book(sink, mybook))
+    if (!abook::generate_addressbook(sink, mybook))
       std::cout << "Generating failed\n";
     else
       std::cout << "Generated: " << generated << "\n";
