@@ -1,26 +1,9 @@
 //#define BOOST_SPIRIT_DEBUG
 #include "google.hpp"
+#include "abook.hpp"
 
 /* Convert a file in abook format to google contacts format using the Spirit and
  * Karma Boost libraries */
-
-
-int read_file_to_buffer(char *fname, std::string &buffer) {
-  std::ifstream file(fname, std::ios_base::in);
-
-  if (!file) {
-    std::cout << "Failed to open file" << std::endl;
-    return 0;
-  }
-
-  // Read file into buffer
-  file.unsetf(std::ios::skipws); // No white space skipping!
-  std::copy(
-      std::istream_iterator<char>(file),
-      std::istream_iterator<char>(),
-      std::back_inserter(buffer));
-  return 1;
-}
 
 int parse_abook_file(char* fname, abook::addressbook& mybook) {
   typedef std::string::const_iterator iterator_type;
@@ -49,11 +32,26 @@ void abook_to_google(char* in, char* out) {
   if (res) {
     std::cout << "full match" <<  std::endl;
     //write_to_file(mybook);
-    google::write_contacts(out, mybook);
+    //google::write_contacts(out, mybook);
   }
   else
     std::cout << "parsing failed" << std::endl;
 }
+
+void google_to_abook(char* in, char* out) {
+  google::addressbook gbook; // Struct to save data
+
+  if (parse_google_file(in, gbook)) {
+    std::cout << "full match" <<  std::endl;
+    abook::addressbook abook(gbook.begin(), gbook.end());
+
+    std::ofstream f(out);
+    abook::generate_addressbook(f, abook);
+  }
+  else
+    std::cout << "parsing failed" << std::endl;
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -63,7 +61,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  abook_to_google(argv[1], argv[2]);
+  //abook_to_google(argv[1], argv[2]);
+  google_to_abook(argv[1], argv[2]);
 
   return 0;
 }

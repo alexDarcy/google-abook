@@ -3,8 +3,7 @@ google-abook
 
 ![Build status](https://travis-ci.org/alexDarcy/google-abook.svg)
 
-Converts a list of contacts from the abook format to Google contacts format
-using Boost. Only this conversion is available at the moment.
+Converts your Google contacts to the abook format.
 
 ## Requirements
 
@@ -12,22 +11,33 @@ using Boost. Only this conversion is available at the moment.
 * g++ (tested with 4.9.1) or clang++ (3.5.0)
 
 ## Usage
+If Boost is not at a standard location, set the `BOOST_DIR` environment variable :
 
-Build with `make`. If Boost is not at a standard location, use instead 
+    export BOOST_DIR=/home/myboost
 
-    make BOOST_DIR==/home/myboost
+### Google contacts to abook
+Export your contacts to a csv file from the website using the "Google contacts" format. Rename it to `google_csv` if needed. Then convert to abook with :
 
-Convert your abook to google contacts with :
-    
-    ./consume-abook myabook mygoogle
+    make
+
+This converts the input file into UTF-8 (`google_convert_csv`) and outputs the abook file (`addressbook`).
+
+### Abook to google contacts
+
+TODO
 
 ## Technical details
 ### Caveat
-Due to the difference in format, some fields will be lost. At the moment, only
+1. We do not manage duplicate contacts, so you will have to merge them before the import.
+
+2. If you have weird data in some fields, you have to clean up before the
+   import.
+
+3. Due to the difference in format, some fields will be lost. At the moment, only
 the abook to google contact conversion is available so the loss only occurs
 when there are more than 3 emails in the abook file.
 
-The abook format was found empirically, so I may have missed some fields. Also,
+4. The abook format was found empirically, so I may have missed some fields. Also,
 there is no single phone representation so local numbers (03...) and
 international numbers (+337....) can be mixed.
 

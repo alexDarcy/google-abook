@@ -1,40 +1,8 @@
 #ifndef _ABOOK_HPP
 #define _ABOOK_HPP
 
-#include <boost/config/warning_disable.hpp>
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
-#include <boost/spirit/include/phoenix_fusion.hpp>
-#include <boost/spirit/include/phoenix_stl.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
-#include <boost/spirit/include/karma.hpp>
-#include <boost/fusion/include/io.hpp>
-#include <iostream>
-#include <fstream>
-#include <vector>
-
-/* standard_wide is used to manage accents. */
-namespace abook 
-{
-  typedef std::vector<std::string> list;
-
-  struct contact
-  {
-    std::string name;
-    list email;
-    std::string nick;
-    std::string mobile;
-    std::string phone;
-    std::string workphone;
-
-    contact()  {}
-    contact(std::string n, std::string e): name(n){
-      email.push_back(e);
-    }
-  };
-}
+#include "common.hpp"
+#include "types.hpp"
 
 /* Structure to store data */
 
@@ -42,15 +10,53 @@ BOOST_FUSION_ADAPT_STRUCT(
     abook::contact,
     (std::string, name)
     (abook::list, email)
-    (std::string, nick)
-    (std::string, mobile)
+    (std::string, address)
+    (std::string, address2)
+    (std::string, city)
+    (std::string, state)
+    (std::string, zip)
+    (std::string, country)
     (std::string, phone)
     (std::string, workphone)
+    (std::string, fax)
+    (std::string, mobile)
+    (std::string, nick)
+    (std::string, url)
+    (std::string, notes)
+    (std::string, custom1)
+    (std::string, custom2)
+    (std::string, custom3)
+    (std::string, custom4)
+
+
 )
 
 namespace abook 
 {
-  typedef std::vector<contact> addressbook;
+  /* Conversion  from google to abook format is really done here */
+  contact::contact(google::contact c) {
+    name = c.data[0];
+    nick = c.data[2];
+    notes = c.data[25];
+    email.push_back(c.data[28]);
+    email.push_back(c.data[30]);
+    email.push_back(c.data[32]);
+    phone = c.data[39];
+    mobile = c.data[41];
+    workphone = c.data[43];
+    country = c.data[51];
+
+    address = c.data[46];
+    city = c.data[47];
+    zip = c.data[50];
+    country = c.data[51];
+    url = c.data[62];
+    /* Store other url in custom */
+    custom2 = c.data[64];
+    custom2 = c.data[66];
+
+    custom1 = c.data[68];
+  }
 
   namespace qi = boost::spirit::qi;
   namespace standard_wide = boost::spirit::standard_wide;
@@ -122,7 +128,7 @@ namespace abook
 
       //debug(entry);
 
-      header = "[format]" >> eol
+      header = ("[format]" >> eol)
         > "program=" >> value >> eol
         > "version=" >> value >> eol;
 
@@ -155,49 +161,52 @@ namespace abook
     qi::rule<Iterator> header;
   };
 
-  // the streaming operator needed for output
-  std::ostream&
-    operator<< (std::ostream& os, contact const& e)
-    {
-      os << "--------contact---------" << std::endl;
-      os << "name=" << e.name << std::endl;
-      os << "mail=";
-      //for (list::iterator it = e.email.begin(); it != e.email.end(); ++it) 
-      BOOST_FOREACH(std::string s, e.email) {
-        os << s << "|";
+  void print_val(std::ostream& os, const std::string& key, const std::string& val) 
+  {
+    if (!val.empty())
+      os << key << val << std::endl;
+  }
+
+  // Custom function instead of using Karma as we need to print the index
+  void print_contact(std::ostream& os, contact const& e, int i)
+  {
+    os << "[" << i << "]" << std::endl;
+    os << "name=" << e.name << std::endl;
+    os << "email=";
+    for (std::string s : e.email) {
+      if (!s.empty()) {
+        if (s != *e.email.begin())
+          os << ",";
+        os << s;
       }
-      os << std::endl;
-      os << "nick=" << e.nick << std::endl;
-      os << "mobile=" << e.mobile << std::endl;
-      os << "phone=" << e.phone << std::endl;
-      os << "workphone=" << e.workphone;
-      return os;
     }
+    os << std::endl;
+    print_val(os, "address=", e.address);
+    print_val(os, "address2=", e.address2);
+    print_val(os, "city=", e.city);
+    print_val(os, "state=", e.state);
+    print_val(os, "zip=", e.zip);
+    print_val(os, "country=", e.country);
+    print_val(os, "phone=", e.phone);
+    print_val(os, "workphone=", e.workphone);
+    print_val(os, "fax=", e.fax);
+    print_val(os, "mobile=", e.mobile);
+    print_val(os, "nick=", e.nick);
+    print_val(os, "url=", e.url);
+    print_val(os, "notes=", e.notes);
+    print_val(os, "custom1=", e.custom1);
+    print_val(os, "custom2=", e.custom2);
+    print_val(os, "custom3=", e.custom3);
+    print_val(os, "custom4=", e.custom4);
+    os << std::endl;
+  }
 
   // Generator for outputing the data
-  template <typename OutputIterator>
-    bool generate_addressbook(OutputIterator& sink, addressbook const& b)
-    {
-      using boost::spirit::karma::stream;
-      using boost::spirit::karma::generate;
-      using boost::spirit::eol;
-
-      bool r = generate(sink,
-          stream % eol,
-          b
-          );
-      return r;
+  void generate_addressbook(std::ostream& os, addressbook const& b)
+  {
+    for (int i = 0; i < b.size(); ++i) {
+      print_contact(os, b[i], i);
     }
-
-  void write_to_file(addressbook &mybook) {
-    //std::ofstream file("test.out", std::ios_base::out);
-    std::string generated;
-    std::back_insert_iterator<std::string> sink(generated);
-
-    if (!abook::generate_addressbook(sink, mybook))
-      std::cout << "Generating failed\n";
-    else
-      std::cout << "Generated: " << generated << "\n";
   }
 
 }
