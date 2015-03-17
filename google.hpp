@@ -13,14 +13,12 @@ namespace google
   {
     std::vector<std::string> data;
     
-    //contact() : data(62){};
+    contact(){};
+    /* We avoid using a boost fusion sequence as it is troublesome with a
+     * single attribute. This means we have to supply a custom constructor */
+    contact(std::vector<std::string> list) : data(list) {};
   };
 }
-
-/* Easier output */
-BOOST_FUSION_ADAPT_STRUCT( 
-    google::contact, (std::vector<std::string>, data)
-    )
 
 namespace google 
 {
@@ -30,7 +28,7 @@ namespace google
   namespace phoenix = boost::phoenix;
   namespace standard_wide = boost::spirit::standard_wide;
 
-  // Skip comments and empty lines
+  // Skip comments
   template<typename Iterator>
     struct comment_skipper : public qi::grammar<Iterator> {
 
@@ -40,7 +38,6 @@ namespace google
       {
         using namespace qi;
         skip = (lit("#") >> *(standard::char_ - eol) >> eol) ;
-          //| +(*(standard_wide::blank) >> eol);
       }
     };  
 
@@ -66,11 +63,10 @@ namespace google
       quote = +(char_ - ',' - '"');
       value = ('"' >> quote > '"') | content;
       entry = strings [ repeat(68) [ value >> ',' ] >> value ] >> eol;
-     // entry %= value % ',' >> eol;
       entry.name("entry");
-//      debug(entry);
+      //debug(entry);
       contacts = header >> eol
-        >> *entry;
+        >> *( entry [push_back(_val, _1)]);
 
       contacts.name("contacts");
       on_error<fail>
@@ -92,48 +88,44 @@ namespace google
   };
 
   // the streaming operator needed for output
-//  std::ostream&
-//    operator<< (std::ostream& os, contact const& e)
-//    {
-//      using boost::phoenix::arg_names::arg1;
-//      boost::fusion::for_each(e, os << arg1 << ",");
-//      return os;
-//    }
-//
-//  // Generator for outputing the data
-//  template <typename OutputIterator>
-//    bool generate_book(OutputIterator& sink, addressbook const& b)
-//    {
-//      using boost::spirit::karma::stream;
-//      using boost::spirit::karma::generate;
-//      using boost::spirit::eol;
-//
-//      bool r = generate(sink,
-//          stream % eol,
-//          b
-//          );
-//      return r;
-//    }
-//
-// 
+  std::ostream&
+    operator<< (std::ostream& os, contact const& e)
+    {
+        os << "name=" << e.data[0] << std::endl;
+      return os;
+    }
+
+  // Generator for outputing the data
+  template <typename OutputIterator>
+    bool generate_book(OutputIterator& sink, addressbook const& b)
+    {
+      using boost::spirit::karma::stream;
+      using boost::spirit::karma::generate;
+      using boost::spirit::eol;
+
+      bool r = generate(sink,
+          stream % eol,
+          b
+          );
+      return r;
+    }
 
   // Convert from abook to google format and output it
-  void write_contacts(char* fname, abook::addressbook& old_contacts) {
+  void write_contacts(char* fname, const addressbook& old_contacts) {
 //    std::ofstream file(fname, std::ios_base::out);
-//
-//    // Convert from abook to google format
 //    addressbook new_contacts(old_contacts.begin(), old_contacts.end());
-//
-//    std::string generated;
-//    std::back_insert_iterator<std::string> sink(generated);
-//
-//    if (!generate_book(sink, new_contacts))
-//      std::cout << "Generating failed\n";
-//    else
-//    {
-//      file << header << std::endl;
-//      file << generated << std::endl;
-//    }
+
+    std::string generated;
+    std::back_insert_iterator<std::string> sink(generated);
+
+    std::cout << "size data" << old_contacts.size() << std::endl;
+    if (!generate_book(sink, old_contacts))
+      std::cout << "Generating failed\n";
+    else
+    {
+      std::cout << "Generating done\n";
+      std::cout << generated << std::endl;
+    }
   }
 
   int parse_google_file(char* fname, addressbook& mybook) {
