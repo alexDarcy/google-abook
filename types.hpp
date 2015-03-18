@@ -17,9 +17,47 @@
 #include <string>
 
 
+namespace google { struct contact;}
+
+namespace abook {
+  typedef std::vector<std::string> list;
+
+  struct contact
+  {
+    std::string name;
+    list email;
+    std::string nick;
+    std::string mobile;
+    std::string phone;
+    std::string workphone;
+
+    contact()  {};
+    contact(std::string n, std::string e): name(n){
+      email.push_back(e);
+    }
+
+    contact(google::contact c);
+  };
+
+  typedef std::vector<contact> addressbook;
+}
+
 
 namespace google
 {
+  struct contact
+  {
+    std::vector<std::string> data;
+
+    contact(){};
+    /* We avoid using a boost fusion sequence as it is troublesome with a
+     * single attribute. This means we have to supply a custom constructor */
+    contact(std::vector<std::string> list) : data(list) {};
+
+    contact(abook::contact) {};
+  };
+
+  typedef std::vector<contact> addressbook;
 
   std::string header = "Name,"          
     "Given Name,"
@@ -90,50 +128,18 @@ namespace google
     "Website 3 - Value,"
     "Custom Field 1 - Type,"
     "Custom Field 1 - Value";
-
-  struct contact
-  {
-    std::vector<std::string> data;
-    
-    contact(){};
-    /* We avoid using a boost fusion sequence as it is troublesome with a
-     * single attribute. This means we have to supply a custom constructor */
-    contact(std::vector<std::string> list) : data(list) {};
-
-  };
-
-  typedef std::vector<contact> addressbook;
 }
 
-/* standard_wide is used to manage accents. */
 namespace abook 
 {
-  typedef std::vector<std::string> list;
-
-  struct contact
-  {
-    std::string name;
-    list email;
-    std::string nick;
-    std::string mobile;
-    std::string phone;
-    std::string workphone;
-
-    contact()  {}
-    contact(std::string n, std::string e): name(n){
-      email.push_back(e);
-    }
-
-    /* Conversion  from google to abook format is really done here */
-    contact(google::contact c) {
-      name = c.data[0];
-      email.push_back(c.data[29]);
-      email.push_back(c.data[31]);
-      email.push_back(c.data[33]);
-    }
-  };
-
-  typedef std::vector<contact> addressbook;
+  /* Conversion  from google to abook format is really done here */
+  contact::contact(google::contact c) {
+    name = c.data[0];
+    email.push_back(c.data[29]);
+    email.push_back(c.data[31]);
+    email.push_back(c.data[33]);
+  }
 }
+
 #endif
 

@@ -1,7 +1,6 @@
 #ifndef _COMMON_HPP
 #define _COMMON_HPP
 
-#
 /* We assume the file to be UTF-8. Use iconv if needed */
 int read_file_to_buffer(char *fname, std::string &buffer) {
   std::ifstream file(fname, std::ios_base::in);

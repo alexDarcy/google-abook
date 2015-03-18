@@ -11,6 +11,7 @@ namespace google
 
   namespace qi = boost::spirit::qi;
   namespace phoenix = boost::phoenix;
+  /* standard_wide is used to manage accents. */
   namespace standard_wide = boost::spirit::standard_wide;
 
   // Skip comments
@@ -96,21 +97,22 @@ namespace google
     }
 
   // Convert from abook to google format and output it
-  void write_contacts(char* fname, const addressbook& old_contacts) {
-//    std::ofstream file(fname, std::ios_base::out);
-//    addressbook new_contacts(old_contacts.begin(), old_contacts.end());
+  void write_contacts(char* fname, const abook::addressbook& old_book) {
 
-    std::string generated;
+//    std::ofstream file(fname, std::ios_base::out);
+    addressbook new_book(old_book.begin(), old_book.end());
+
+    /*std::string generated;
     std::back_insert_iterator<std::string> sink(generated);
 
-    std::cout << "size data" << old_contacts.size() << std::endl;
-    if (!generate_book(sink, old_contacts))
+    if (!generate_book(sink, old_book))
       std::cout << "Generating failed\n";
     else
     {
       std::cout << "Generating done\n";
       std::cout << generated << std::endl;
     }
+    */
   }
 
   int parse_google_file(char* fname, addressbook& mybook) {
@@ -129,8 +131,7 @@ namespace google
     contact mycontact;
     bool r = phrase_parse(begin, end, g, skip, mybook);
 
-  return r && begin == end;
-  return 0;
+    return r && begin == end;
   }
 
 }
