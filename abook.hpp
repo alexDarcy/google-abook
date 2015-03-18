@@ -1,61 +1,8 @@
 #ifndef _ABOOK_HPP
 #define _ABOOK_HPP
 
-#include <boost/config/warning_disable.hpp>
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
-#include <boost/spirit/include/phoenix_fusion.hpp>
-#include <boost/spirit/include/phoenix_stl.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
-#include <boost/spirit/include/karma.hpp>
-#include <boost/fusion/include/io.hpp>
-#include <iostream>
-#include <fstream>
-#include <vector>
-
-
-/* We assume the file to be UTF-8. Use iconv if needed */
-int read_file_to_buffer(char *fname, std::string &buffer) {
-  std::ifstream file(fname, std::ios_base::in);
-
-  if (!file) {
-    std::cout << "Failed to open file" << std::endl;
-    return 0;
-  }
-
-  std::cout << "reading" << fname << std::endl;
-  // Read file into buffer
-  file.unsetf(std::ios::skipws); // No white space skipping!
-  std::copy(
-      std::istream_iterator<char>(file),
-      std::istream_iterator<char>(),
-      std::back_inserter(buffer));
-  return 1;
-}
-
-
-/* standard_wide is used to manage accents. */
-namespace abook 
-{
-  typedef std::vector<std::string> list;
-
-  struct contact
-  {
-    std::string name;
-    list email;
-    std::string nick;
-    std::string mobile;
-    std::string phone;
-    std::string workphone;
-
-    contact()  {}
-    contact(std::string n, std::string e): name(n){
-      email.push_back(e);
-    }
-  };
-}
+#include "common.hpp"
+#include "types.hpp"
 
 /* Structure to store data */
 
@@ -71,7 +18,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 namespace abook 
 {
-  typedef std::vector<contact> addressbook;
 
   namespace qi = boost::spirit::qi;
   namespace standard_wide = boost::spirit::standard_wide;

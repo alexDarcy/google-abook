@@ -1,5 +1,6 @@
 //#define BOOST_SPIRIT_DEBUG
 #include "google.hpp"
+#include "abook.hpp"
 
 /* Convert a file in abook format to google contacts format using the Spirit and
  * Karma Boost libraries */
