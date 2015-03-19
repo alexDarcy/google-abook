@@ -44,7 +44,7 @@ void google_to_abook(char* in, char* out) {
   if (parse_google_file(in, mybook)) {
     std::cout << "full match" <<  std::endl;
     abook::addressbook new_book(mybook.begin(), mybook.end());
-    std::cout << new_book << std::endl;
+    write_contacts(out, new_book);
   }
   else
     std::cout << "parsing failed" << std::endl;

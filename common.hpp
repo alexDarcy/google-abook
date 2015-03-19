@@ -20,10 +20,4 @@ int read_file_to_buffer(char *fname, std::string &buffer) {
   return 1;
 }
 
-template<typename T> std::ostream& operator<<(std::ostream& os, const std::vector<T> v) {
-  for (T cur : v) {
-    os << cur << std::endl;
-  }
-  return os;
-}
 #endif

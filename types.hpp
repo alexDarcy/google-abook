@@ -138,5 +138,21 @@ namespace abook
   }
 }
 
+// Generator for outputing the data
+template <typename OutputIterator, typename T>
+bool generate_addressbook(OutputIterator& sink, T const& b)
+{
+  using boost::spirit::karma::stream;
+  using boost::spirit::karma::generate;
+  using boost::spirit::eol;
+
+  bool r = generate(sink,
+      stream % eol,
+      b
+      );
+  return r;
+}
+
+
 #endif
 

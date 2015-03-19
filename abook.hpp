@@ -141,33 +141,18 @@ namespace abook
       return os;
     }
 
-  // Generator for outputing the data
-  template <typename OutputIterator>
-    bool generate_addressbook(OutputIterator& sink, addressbook const& b)
-    {
-      using boost::spirit::karma::stream;
-      using boost::spirit::karma::generate;
-      using boost::spirit::eol;
 
-      bool r = generate(sink,
-          stream % eol,
-          b
-          );
-      return r;
-    }
-
-  /*void contact::write(char* out) {
+  void write_contacts(char* out, addressbook const& book) {
     //std::ofstream file("test.out", std::ios_base::out);
+    typedef std::back_insert_iterator<std::string> iterator ;
     std::string generated;
-    std::back_insert_iterator<std::string> sink(generated);
+    iterator sink(generated);
 
-    if (!abook::generate_addressbook(sink, this))
+    if (!generate_addressbook<iterator, addressbook>(sink, book))
       std::cout << "Generating failed\n";
     else
       std::cout << "Generated: " << generated << "\n";
   }
-  */
-
 }
 
 #endif
