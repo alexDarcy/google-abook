@@ -10,10 +10,25 @@ BOOST_FUSION_ADAPT_STRUCT(
     abook::contact,
     (std::string, name)
     (abook::list, email)
-    (std::string, nick)
-    (std::string, mobile)
+    (std::string, address)
+    (std::string, address2)
+    (std::string, city)
+    (std::string, state)
+    (std::string, zip)
+    (std::string, country)
     (std::string, phone)
     (std::string, workphone)
+    (std::string, fax)
+    (std::string, mobile)
+    (std::string, nick)
+    (std::string, url)
+    (std::string, notes)
+    (std::string, custom1)
+    (std::string, custom2)
+    (std::string, custom3)
+    (std::string, custom4)
+
+
 )
 
 namespace abook 
@@ -22,9 +37,10 @@ namespace abook
   contact::contact(google::contact c) {
     name = c.data[0];
     nick = c.data[2];
-    email.push_back(c.data[26]);
+    notes = c.data[25];
     email.push_back(c.data[28]);
     email.push_back(c.data[30]);
+    email.push_back(c.data[32]);
     phone = c.data[39];
     mobile = c.data[41];
     workphone = c.data[43];
@@ -140,15 +156,19 @@ namespace abook
       os << "--------contact---------" << std::endl;
       os << "name=" << e.name << std::endl;
       os << "mail=";
-      //for (list::iterator it = e.email.begin(); it != e.email.end(); ++it) 
-      BOOST_FOREACH(std::string s, e.email) {
-        os << s << "|";
+      for (std::string s : e.email) {
+        if (!s.empty()) {
+          if (s != *e.email.begin())
+            os << ",";
+          os << s;
+        }
       }
       os << std::endl;
       os << "nick=" << e.nick << std::endl;
       os << "mobile=" << e.mobile << std::endl;
       os << "phone=" << e.phone << std::endl;
-      os << "workphone=" << e.workphone;
+      os << "workphone=" << e.workphone << std::endl;;
+      os << "notes=" << e.notes;
       return os;
     }
 
