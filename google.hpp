@@ -81,40 +81,6 @@ namespace google
       return os;
     }
 
-  // Generator for outputing the data
-  template <typename OutputIterator>
-    bool generate_book(OutputIterator& sink, addressbook const& b)
-    {
-      using boost::spirit::karma::stream;
-      using boost::spirit::karma::generate;
-      using boost::spirit::eol;
-
-      bool r = generate(sink,
-          stream % eol,
-          b
-          );
-      return r;
-    }
-
-  // Convert from abook to google format and output it
-  void write_contacts(char* fname, const abook::addressbook& old_book) {
-
-//    std::ofstream file(fname, std::ios_base::out);
-    addressbook new_book(old_book.begin(), old_book.end());
-
-    /*std::string generated;
-    std::back_insert_iterator<std::string> sink(generated);
-
-    if (!generate_book(sink, old_book))
-      std::cout << "Generating failed\n";
-    else
-    {
-      std::cout << "Generating done\n";
-      std::cout << generated << std::endl;
-    }
-    */
-  }
-
   int parse_google_file(char* fname, addressbook& mybook) {
     typedef std::string::const_iterator iterator_type;
 

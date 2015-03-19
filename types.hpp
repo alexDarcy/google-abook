@@ -153,6 +153,18 @@ bool generate_addressbook(OutputIterator& sink, T const& b)
   return r;
 }
 
+template<typename T> void write_contacts(char* out, T const& book) {
+  //std::ofstream file("test.out", std::ios_base::out);
+  typedef std::back_insert_iterator<std::string> iterator ;
+  std::string generated;
+  iterator sink(generated);
+
+  if (!generate_addressbook<iterator, T>(sink, book))
+    std::cout << "Generating failed\n";
+  else
+    std::cout << "Generated: " << generated << "\n";
+}
+
 
 #endif
 
