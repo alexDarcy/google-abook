@@ -32,10 +32,7 @@ namespace abook {
     std::string workphone;
 
     contact()  {};
-    contact(std::string n, std::string e): name(n){
-      email.push_back(e);
-    }
-
+    contact(std::string n, std::string e): name(n){ email.push_back(e); }
     contact(google::contact c);
   };
 

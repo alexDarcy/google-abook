@@ -156,16 +156,17 @@ namespace abook
       return r;
     }
 
-  void write_to_file(addressbook &mybook) {
+  /*void contact::write(char* out) {
     //std::ofstream file("test.out", std::ios_base::out);
     std::string generated;
     std::back_insert_iterator<std::string> sink(generated);
 
-    if (!abook::generate_addressbook(sink, mybook))
+    if (!abook::generate_addressbook(sink, this))
       std::cout << "Generating failed\n";
     else
       std::cout << "Generated: " << generated << "\n";
   }
+  */
 
 }
 

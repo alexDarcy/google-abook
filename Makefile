@@ -11,7 +11,7 @@ google_convert.csv: google.csv
 google-abook: main.o 
 	${CXX} ${CPPFLAGS} -o $@ $<
 
-main.o: google.hpp abook.hpp
+main.o: google.hpp abook.hpp types.hpp common.hpp
 
 clean:
 	rm -f *.o google-abook
