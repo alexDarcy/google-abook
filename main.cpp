@@ -39,12 +39,12 @@ void abook_to_google(char* in, char* out) {
 }
 
 void google_to_abook(char* in, char* out) {
-  google::addressbook mybook; // Struct to save data
+  google::addressbook gbook; // Struct to save data
 
-  if (parse_google_file(in, mybook)) {
+  if (parse_google_file(in, gbook)) {
     std::cout << "full match" <<  std::endl;
-    abook::addressbook new_book(mybook.begin(), mybook.end());
-    write_contacts(out, mybook);
+    abook::addressbook abook(gbook.begin(), gbook.end());
+    write_contacts(out, abook);
   }
   else
     std::cout << "parsing failed" << std::endl;

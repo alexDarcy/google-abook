@@ -18,6 +18,17 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 namespace abook 
 {
+  /* Conversion  from google to abook format is really done here */
+  contact::contact(google::contact c) {
+    name = c.data[0];
+    nick = c.data[2];
+    email.push_back(c.data[26]);
+    email.push_back(c.data[28]);
+    email.push_back(c.data[30]);
+    phone = c.data[39];
+    mobile = c.data[41];
+    workphone = c.data[43];
+  }
 
   namespace qi = boost::spirit::qi;
   namespace standard_wide = boost::spirit::standard_wide;
