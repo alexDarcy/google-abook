@@ -78,6 +78,7 @@ namespace google
     operator<< (std::ostream& os, contact const& e)
     {
         os << "name=" << e.data[0] << std::endl;
+        os << "mail=" << e.data[26] << "," << e.data[28] << "," << e.data[30] << std::endl;
       return os;
     }
 

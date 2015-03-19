@@ -135,6 +135,9 @@ namespace abook
     email.push_back(c.data[29]);
     email.push_back(c.data[31]);
     email.push_back(c.data[33]);
+    nick = c.data[39];
+    mobile = c.data[41];
+    workphone = c.data[43];
   }
 }
 
