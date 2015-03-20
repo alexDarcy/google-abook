@@ -44,6 +44,18 @@ namespace abook
     phone = c.data[39];
     mobile = c.data[41];
     workphone = c.data[43];
+    country = c.data[51];
+
+    address = c.data[46];
+    city = c.data[47];
+    zip = c.data[50];
+    country = c.data[51];
+    url = c.data[62];
+    /* Store other url in custom */
+    custom2 = c.data[64];
+    custom2 = c.data[66];
+
+    custom1 = c.data[68];
   }
 
   namespace qi = boost::spirit::qi;
@@ -149,6 +161,12 @@ namespace abook
     qi::rule<Iterator> header;
   };
 
+  void print(std::ostream& os, const std::string& key, const std::string& val) 
+  {
+    if (!val.empty())
+      os << key << val << std::endl;
+  }
+
   // the streaming operator needed for output
   std::ostream&
     operator<< (std::ostream& os, contact const& e)
@@ -164,11 +182,23 @@ namespace abook
         }
       }
       os << std::endl;
-      os << "nick=" << e.nick << std::endl;
-      os << "mobile=" << e.mobile << std::endl;
-      os << "phone=" << e.phone << std::endl;
-      os << "workphone=" << e.workphone << std::endl;;
-      os << "notes=" << e.notes;
+      print(os, "address=", e.address);
+      print(os, "address2=", e.address2);
+      print(os, "city=", e.city);
+      print(os, "state=", e.state);
+      print(os, "zip=", e.zip);
+      print(os, "country=", e.country);
+      print(os, "phone=", e.phone);
+      print(os, "workphone=", e.workphone);
+      print(os, "fax=", e.fax);
+      print(os, "mobile=", e.mobile);
+      print(os, "nick=", e.nick);
+      print(os, "url=", e.url);
+      print(os, "notes=", e.notes);
+      print(os, "custom1=", e.custom1);
+      print(os, "custom2=", e.custom2);
+      print(os, "custom3=", e.custom3);
+      print(os, "custom4=", e.custom4);
       return os;
     }
 
