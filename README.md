@@ -11,14 +11,15 @@ Converts your Google contacts to the abook format.
 * g++ (tested with 4.9.1) or clang++ (3.5.0)
 
 ## Usage
-If Boost is not at a standard location, set the `BOOST_DIR` environment variable :
+If Boost is not at a standard location, set the `BOOST_DIR` environment variable and build the application:
 
     export BOOST_DIR=/home/myboost
+    make
 
 ### Google contacts to abook
 Export your contacts to a csv file from the website using the "Google contacts" format. Rename it to `google_csv` if needed. Then convert to abook with :
 
-    make
+    make abook
 
 This converts the input file into UTF-8 (`google_convert_csv`) and outputs the abook file (`addressbook`).
 
