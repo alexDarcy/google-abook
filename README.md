@@ -17,11 +17,20 @@ If Boost is not at a standard location, set the `BOOST_DIR` environment variable
     make
 
 ### Google contacts to abook
-Export your contacts to a csv file from the website using the "Google contacts" format. Rename it to `google_csv` if needed. Then convert to abook with :
+Export your contacts to a csv file from the website using the "Google contacts"
+format. For an automatic conversion, rename it to `google.csv` and run :
 
     make abook
 
-This converts the input file into UTF-8 (`google_convert_csv`) and outputs the abook file (`addressbook`).
+The resulting fil is called `addressbook`.
+
+If you want more control, you can run instead :
+
+    make convert IN=google.csv
+    ./abook google_utf8.csv out.csv
+
+This will converts the input file into UTF-8. The new file is called google_utf8.csv by default.
+You can then feed it to the program and defien the output file (`out.csv`).
 
 ### Abook to google contacts
 

@@ -8,7 +8,7 @@
 namespace google 
 {
   int nb = 67;
-  std::string header = "Name,"          
+  std::string fields = "Name,"          
     "Given Name,"
     "Additional Name,"
     "Family Name,"
@@ -96,7 +96,6 @@ namespace google
       }
     };  
 
-
   // Our parser (using a custom skipper to skip comments and empty lines )
   template <typename Iterator, typename skipper = comment_skipper<Iterator> >
     struct google_parser : qi::grammar<Iterator, addressbook(), skipper>
@@ -110,6 +109,15 @@ namespace google
       using phoenix::val;
       using phoenix::construct;
 
+      header = eps > fields >> eol;
+      on_error<fail>
+      (
+       header
+       , std::cout
+       << val("Error! Wrong header. Maybe google changed its specs ? ")
+       << std::endl
+      );
+
       // Allow to use repeat to cast into a container atomically
       qi::as<std::vector<std::string> > strings;
 
@@ -120,10 +128,10 @@ namespace google
       entry = strings [ repeat(nb-1) [ value >> ',' ] >> value ] >> eol;
       entry.name("entry");
       debug(entry);
-      contacts = header >> eol
-        >> *( entry [push_back(_val, _1)]);
 
-      contacts.name("contacts");
+      contacts = header 
+                 >> *( entry [push_back(_val, _1)]);
+
       on_error<fail>
         (
          contacts
@@ -137,6 +145,7 @@ namespace google
         );
     }
 
+    qi::rule<Iterator, std::string()> header;
     qi::rule<Iterator, std::string()> value, content, quote;
     qi::rule<Iterator, contact()> entry;
     qi::rule<Iterator, addressbook(), skipper> contacts;
@@ -147,7 +156,7 @@ namespace google
     operator<< (std::ostream& os, contact const& e)
     {
         os << "name=" << e.data[0] << std::endl;
-        os << "mail=" << e.data[26] << "," << e.data[28] << "," << e.data[30] << std::endl;
+        os << "mail=" << e.data[28] << "," << e.data[30] << "," << e.data[31] << std::endl;
       return os;
     }
 
