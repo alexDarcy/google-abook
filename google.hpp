@@ -125,7 +125,7 @@ namespace google
       content = +(char_ - ',' - eol) | attr("");
       quote = +(char_ - ',' - '"');
       value = ('"' >> quote > '"') | content;
-      entry = strings [ repeat(nb-1) [ value >> ',' ] >> value ] >> eol;
+      entry = strings [ repeat(nb-1) [ (eps | value) > ',' ] > (eps | value) ] > eol;
       entry.name("entry");
       debug(entry);
 

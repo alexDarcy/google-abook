@@ -204,7 +204,7 @@ namespace abook
   // Generator for outputing the data
   void generate_addressbook(std::ostream& os, addressbook const& b)
   {
-    for (int i = 0; i < b.size(); ++i) {
+    for (unsigned int i = 0; i < b.size(); ++i) {
       print_contact(os, b[i], i);
     }
   }
