@@ -5,6 +5,18 @@ google-abook
 
 Converts your Google contacts to the abook format.
 
+## Background
+
+People using mutt may also use abook. Unfortunately, I was not satisfied by the
+import for abook :
+
+* it manages csv but does not work for the export by google (either to the
+  Google or Outlook format)
+* there is a helper script in the contrib/ folder of abook (see source code) but
+  phone number were not converted.
+
+This converts a list of contacts exported from Google contacts to abook.
+
 ## Requirements
 
 * Boost (tested with 1.56)
@@ -17,11 +29,20 @@ If Boost is not at a standard location, set the `BOOST_DIR` environment variable
     make
 
 ### Google contacts to abook
-Export your contacts to a csv file from the website using the "Google contacts" format. Rename it to `google_csv` if needed. Then convert to abook with :
+Export your contacts to a csv file from the website using the "Google contacts"
+format. For an automatic conversion, rename it to `google.csv` and run :
 
     make abook
 
-This converts the input file into UTF-8 (`google_convert_csv`) and outputs the abook file (`addressbook`).
+The resulting fil is called `addressbook`.
+
+If you want more control, you can run instead :
+
+    make convert IN=google.csv
+    ./abook google_utf8.csv out.csv
+
+This will converts the input file into UTF-8. The new file is called google_utf8.csv by default.
+You can then feed it to the program and defien the output file (`out.csv`).
 
 ### Abook to google contacts
 

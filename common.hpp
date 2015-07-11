@@ -10,7 +10,7 @@ int read_file_to_buffer(char *fname, std::string &buffer) {
     return 0;
   }
 
-  std::cout << "reading" << fname << std::endl;
+  std::cout << "Reading " << fname << std::endl;
   // Read file into buffer
   file.unsetf(std::ios::skipws); // No white space skipping!
   std::copy(

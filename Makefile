@@ -7,19 +7,21 @@ CPPFLAGS+=-Wall -g -std=c++11
 
 all: google-abook
 
-abook: addressbook google_convert.csv 
+IN=google.csv
+CSV=google_utf8.csv
 
-addressbook: google_convert.csv google-abook
+abook: addressbook ${CSV}
+
+addressbook: ${CSV} google-abook
 	./google-abook $< $@
 
-CSV=google.csv
 
-google_convert.csv: 
-ifneq ("$(wildcard ${CSV})","")
+convert:
+ifneq ("$(wildcard ${IN})","")
 	@echo "Converting from UTF-16 to UTF-8"
-	iconv -f UTF-16 -t UTF-8 ${CSV} -o $@
+	iconv -f UTF-16 -t UTF-8 ${IN} -o ${CSV}
 else
-	@echo "Missing file ${CSV}"
+	@echo "Missing file ${IN}"
 endif
 
 google-abook: main.o 
@@ -29,4 +31,4 @@ main.o: google.hpp abook.hpp types.hpp common.hpp
 
 clean:
 	rm -f *.o google-abook
-	rm google_convert.csv
+	rm google_utf8.csv

@@ -3,11 +3,12 @@
 
 #include "types.hpp"
 #include "common.hpp"
+#include <map>
 #include <boost/algorithm/string/erase.hpp>
 
 namespace google 
 {
-  std::string header = "Name,"          
+  std::string fields = "Name,"          
     "Given Name,"
     "Additional Name,"
     "Family Name,"
@@ -49,8 +50,6 @@ namespace google
     "Phone 1 - Value,"
     "Phone 2 - Type,"
     "Phone 2 - Value,"
-    "Phone 3 - Type,"
-    "Phone 3 - Value,"
     "Address 1 - Type,"
     "Address 1 - Formatted,"
     "Address 1 - Street,"
@@ -76,6 +75,23 @@ namespace google
     "Website 3 - Value,"
     "Custom Field 1 - Type,"
     "Custom Field 1 - Value";
+  int nb = 67;
+
+  // Index of each interesting field for abook
+  std::map<std::string, int> pos = {
+    {"name", 0},
+    {"nick", 1},
+    {"email1", 28},
+    {"email2", 30},
+    {"email3", 32},
+    {"email4", 34},
+    {"address", 43},
+    {"city", 45},
+    {"zip", 48},
+    {"country", 49},
+    {"phone1", 39},
+    {"phone2", 41}
+  };
 
   typedef std::vector<contact> addressbook;
 
@@ -97,7 +113,6 @@ namespace google
       }
     };  
 
-
   // Our parser (using a custom skipper to skip comments and empty lines )
   template <typename Iterator, typename skipper = comment_skipper<Iterator> >
     struct google_parser : qi::grammar<Iterator, addressbook(), skipper>
@@ -111,20 +126,32 @@ namespace google
       using phoenix::val;
       using phoenix::construct;
 
+      header = eps > fields >> eol;
+      on_error<fail>
+      (
+       header
+       , std::cout
+       << val("Error! Wrong header. Maybe google changed its specs ? ")
+       << std::endl
+      );
+
       // Allow to use repeat to cast into a container atomically
       qi::as<std::vector<std::string> > strings;
 
       /* This avoid an issue with single-member structs */
       content = +(char_ - ',' - eol) | attr("");
+      content.name("content");
       quote = +(char_ - ',' - '"');
-      value = ('"' >> quote > '"') | content;
-      entry = strings [ repeat(68) [ value >> ',' ] >> value ] >> eol;
+      quote.name("quote");
+      value = ('"' >> quote > '"') | content;// | eps;
+      value.name("value");
+      entry = strings [ repeat(nb-1) [ value >> ',' ] >> value ] >> eol;
       entry.name("entry");
       //debug(entry);
-      contacts = header >> eol
-        >> *( entry [push_back(_val, _1)]);
 
-      contacts.name("contacts");
+      contacts = header 
+                 >> *(entry [push_back(_val, _1)]);
+
       on_error<fail>
         (
          contacts
@@ -138,6 +165,7 @@ namespace google
         );
     }
 
+    qi::rule<Iterator, std::string()> header;
     qi::rule<Iterator, std::string()> value, content, quote;
     qi::rule<Iterator, contact()> entry;
     qi::rule<Iterator, addressbook(), skipper> contacts;
@@ -145,12 +173,24 @@ namespace google
 
   // the streaming operator needed for output
   std::ostream&
-    operator<< (std::ostream& os, contact const& e)
+    operator<< (std::ostream& os, contact const& c)
     {
-        os << "name=" << e.data[0] << std::endl;
-        os << "mail=" << e.data[26] << "," << e.data[28] << "," << e.data[30] << std::endl;
+      for (auto const &it : pos) {
+          os << it.first << "=" << c.data[it.second] << std::endl;
+      }
       return os;
     }
+
+  // the streaming operator needed for output
+  std::ostream&
+    operator<< (std::ostream& os, addressbook const& a)
+    {
+      for (auto c : a) {
+        os << c;
+      }
+      return os;
+    }
+
 
   int parse_google_file(char* fname, addressbook& mybook) {
     typedef std::string::const_iterator iterator_type;
