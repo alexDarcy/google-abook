@@ -7,6 +7,7 @@
 
 namespace google 
 {
+  int nb = 67;
   std::string header = "Name,"          
     "Given Name,"
     "Additional Name,"
@@ -49,8 +50,6 @@ namespace google
     "Phone 1 - Value,"
     "Phone 2 - Type,"
     "Phone 2 - Value,"
-    "Phone 3 - Type,"
-    "Phone 3 - Value,"
     "Address 1 - Type,"
     "Address 1 - Formatted,"
     "Address 1 - Street,"
@@ -118,9 +117,9 @@ namespace google
       content = +(char_ - ',' - eol) | attr("");
       quote = +(char_ - ',' - '"');
       value = ('"' >> quote > '"') | content;
-      entry = strings [ repeat(68) [ value >> ',' ] >> value ] >> eol;
+      entry = strings [ repeat(nb-1) [ value >> ',' ] >> value ] >> eol;
       entry.name("entry");
-      //debug(entry);
+      debug(entry);
       contacts = header >> eol
         >> *( entry [push_back(_val, _1)]);
 
