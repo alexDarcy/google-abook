@@ -3,11 +3,11 @@
 
 #include "types.hpp"
 #include "common.hpp"
+#include <map>
 #include <boost/algorithm/string/erase.hpp>
 
 namespace google 
 {
-  int nb = 67;
   std::string fields = "Name,"          
     "Given Name,"
     "Additional Name,"
@@ -75,6 +75,18 @@ namespace google
     "Website 3 - Value,"
     "Custom Field 1 - Type,"
     "Custom Field 1 - Value";
+  int nb = 67;
+
+  // Index of each interesting field for abook
+  std::map<std::string, int> pos = {
+    {"name", 0},
+    {"email1", 28},
+    {"email2", 30},
+    {"email3", 32},
+    {"email4", 34},
+    {"phone1", 39},
+    {"phone2", 41}
+  };
 
   typedef std::vector<contact> addressbook;
 
@@ -123,14 +135,17 @@ namespace google
 
       /* This avoid an issue with single-member structs */
       content = +(char_ - ',' - eol) | attr("");
+      content.name("content");
       quote = +(char_ - ',' - '"');
-      value = ('"' >> quote > '"') | content;
-      entry = strings [ repeat(nb-1) [ (eps | value) > ',' ] > (eps | value) ] > eol;
+      quote.name("quote");
+      value = ('"' >> quote > '"') | content;// | eps;
+      value.name("value");
+      entry = strings [ repeat(nb-1) [ value >> ',' ] >> value ] >> eol;
       entry.name("entry");
-      debug(entry);
+      //debug(entry);
 
       contacts = header 
-                 >> *( entry [push_back(_val, _1)]);
+                 >> *(entry [push_back(_val, _1)]);
 
       on_error<fail>
         (
@@ -153,12 +168,34 @@ namespace google
 
   // the streaming operator needed for output
   std::ostream&
-    operator<< (std::ostream& os, contact const& e)
+    operator<< (std::ostream& os, contact const& c)
     {
-        os << "name=" << e.data[0] << std::endl;
-        os << "mail=" << e.data[28] << "," << e.data[30] << "," << e.data[31] << std::endl;
+        os << "name=" << c.data[pos["name"]] << std::endl;
+
+        os << "mail=";
+        os << c.data[pos["email1"]] << ",";
+        os << c.data[pos["email2"]] << ",";
+        os << c.data[pos["email3"]] << ",";
+        os << c.data[pos["email4"]] << ",";
+        os << std::endl;
+
+        os << "phones=";
+        os << c.data[pos["phone1"]] << ","; 
+        os << c.data[pos["phone2"]] << ","; 
+        os << std::endl;
       return os;
     }
+
+  // the streaming operator needed for output
+  std::ostream&
+    operator<< (std::ostream& os, addressbook const& a)
+    {
+      for (auto c : a) {
+        os << c;
+      }
+      return os;
+    }
+
 
   int parse_google_file(char* fname, addressbook& mybook) {
     typedef std::string::const_iterator iterator_type;

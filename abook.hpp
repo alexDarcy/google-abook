@@ -35,27 +35,31 @@ namespace abook
 {
   /* Conversion  from google to abook format is really done here */
   contact::contact(google::contact c) {
-    name = c.data[0];
+    using namespace google;
+
+    name = c.data[pos["name"]];
     nick = c.data[2];
-    notes = c.data[25];
-    email.push_back(c.data[28]);
-    email.push_back(c.data[30]);
-    email.push_back(c.data[32]);
-    phone = c.data[39];
-    mobile = c.data[41];
-    workphone = c.data[43];
-    country = c.data[51];
+    email.push_back(c.data[pos["email1"]]);
+    email.push_back(c.data[pos["email2"]]);
+    email.push_back(c.data[pos["email2"]]);
+    email.push_back(c.data[pos["email3"]]);
+    phone = c.data[pos["phone1"]];
+    mobile = c.data[pos["phone2"]];
+    workphone = c.data[pos["phone3"]];
 
-    address = c.data[46];
-    city = c.data[47];
-    zip = c.data[50];
-    country = c.data[51];
-    url = c.data[62];
-    /* Store other url in custom */
-    custom2 = c.data[64];
-    custom2 = c.data[66];
+    std::cout << "Skipping other fields for now" << std::endl;
+    //country = c.data[51];
 
-    custom1 = c.data[68];
+    //address = c.data[46];
+    //city = c.data[47];
+    //zip = c.data[50];
+    //country = c.data[51];
+    //url = c.data[62];
+    ///* Store other url in custom */
+    //custom2 = c.data[64];
+    //custom2 = c.data[66];
+
+    //custom1 = c.data[68];
   }
 
   namespace qi = boost::spirit::qi;
