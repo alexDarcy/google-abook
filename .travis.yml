@@ -1,6 +1,10 @@
 language: cpp
-install: sudo apt-get install libboost-dev
 script: make
+sudo: false
+addons:
+  apt:
+    packages:
+      - libboost-dev
 compiler:
   - clang
   - g++

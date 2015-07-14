@@ -1,4 +1,4 @@
-#CXX=clang++
+CXX=clang++
 #CXX=g++
 ifdef BOOST_DIR
 CPPFLAGS=-I${BOOST_DIR}
