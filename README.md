@@ -5,6 +5,18 @@ google-abook
 
 Converts your Google contacts to the abook format.
 
+## Background
+
+People using mutt may also use abook. Unfortunately, I was not satisfied by the
+import for abook :
+
+* it manages csv but does not work for the export by google (either to the
+  Google or Outlook format)
+* there is a helper script in the contrib/ folder of abook (see source code) but
+  phone number were not converted.
+
+This converts a list of contacts exported from Google contacts to abook.
+
 ## Requirements
 
 * Boost (tested with 1.56)
