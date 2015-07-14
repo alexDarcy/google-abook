@@ -84,6 +84,10 @@ namespace google
     {"email2", 30},
     {"email3", 32},
     {"email4", 34},
+    {"address", 43},
+    {"city", 45},
+    {"zip", 48},
+    {"country", 49},
     {"phone1", 39},
     {"phone2", 41}
   };
@@ -170,19 +174,9 @@ namespace google
   std::ostream&
     operator<< (std::ostream& os, contact const& c)
     {
-        os << "name=" << c.data[pos["name"]] << std::endl;
-
-        os << "mail=";
-        os << c.data[pos["email1"]] << ",";
-        os << c.data[pos["email2"]] << ",";
-        os << c.data[pos["email3"]] << ",";
-        os << c.data[pos["email4"]] << ",";
-        os << std::endl;
-
-        os << "phones=";
-        os << c.data[pos["phone1"]] << ","; 
-        os << c.data[pos["phone2"]] << ","; 
-        os << std::endl;
+      for (auto const &it : pos) {
+          os << it.first << "=" << c.data[it.second] << std::endl;
+      }
       return os;
     }
 
