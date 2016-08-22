@@ -5,10 +5,10 @@ CPPFLAGS=-I${BOOST_DIR}
 endif
 CPPFLAGS+=-Wall -g -std=c++11 
 
-all: google-abook
-
 IN=google.csv
 CSV=google_utf8.csv
+
+all: google-abook ${CSV} addressbook
 
 abook: addressbook ${CSV}
 
